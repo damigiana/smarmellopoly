@@ -711,7 +711,7 @@ let hopJ=-1,hotCell=-1,diceRolling=false;
 async function play(e){
  const phone=isPhone(),pl=j=>G.players[j]||null;
  if(e.k==='dice'){diceRolling=true;if(phone){toast(`🎲 ${pl(e.j)?.name||''}: ${e.d[0]} + ${e.d[1]}`);await sleep(1500)}else await diceFx(e);diceRolling=false;if(vis)vis.dice=e.d;render();return}
- if(e.k==='move'){const ms=stepMs(e),use3d=!phone&&!REDUCED;
+ if(e.k==='move'){const ms=stepMs(e),use3d=!phone&&!REDUCED&&OPT3D;
   if(use3d){cam(vis?vis.pos[e.j]:e.path[0],900);await sleep(950)}
   for(const p of e.path){if(vis)vis.pos[e.j]=p;hopJ=e.j;hotCell=p;render();if(use3d)cam(p,ms);await sleep(ms)}
   hopJ=-1;render();await sleep(use3d?1500:250);hotCell=-1;if(use3d){cam(null,900);await sleep(900)}render();return}
@@ -725,6 +725,7 @@ async function play(e){
  if(e.k==='toast'){toast(e.txt);await sleep(phone?400:1300);return}
  if(e.k==='turn'){await sleep(400);return}}
 const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let OPT3D=true;try{OPT3D=localStorage.getItem('smarm-3d')!=='0'}catch(e){}
 const CW=[1.4,1,1,1,1,1,1,1,1,1,1.4];
 function cellFrac(i){const[r,c]=coord(i);const f=k=>{let s=0;for(let a=0;a<k-1;a++)s+=CW[a];return (s+CW[k-1]/2)/11.8};return [f(c),f(r)]}
 function cam(i,ms){const b=$('#board');if(!b)return;b.style.transition=`transform ${ms||900}ms cubic-bezier(.3,.7,.25,1)`;
@@ -907,7 +908,7 @@ function sideHTML(){
    ${j!==G.turn&&!p.out&&ph?`<div><button class="btn" data-act="trade" data-arg="${j}">Scambio con ${esc(p.name)}</button></div>`:''}
   </div>`}).join('')}
  <div class="bankc"><div class="bico" id="bank">${BANKICO}</div><div><div class="pn">Banca</div><div class="pw">Incassa tasse, acquisti e cauzioni. Paga la Partenza e le carte.</div></div></div>
- <div class="sbar"><button class="btn" data-act="fs">Schermo intero</button><button class="btn" data-act="rules">Regole</button>
+ <div class="sbar"><button class="btn" data-act="fs">Schermo intero</button><button class="btn" data-act="toggle3d" aria-pressed="${OPT3D}">Tabellone 3D: ${OPT3D?'acceso':'spento'}</button><button class="btn" data-act="rules">Regole</button>
   <button class="btn" data-act="finish">${UI.confirm==='finish'?'Confermi? Clicca ancora':'Termina e conta'}</button>
   <button class="btn bad" data-act="newgame">${UI.confirm==='newgame'?'Sicuro? Clicca ancora':'Nuova partita'}</button></div>`}
 
@@ -1024,6 +1025,7 @@ async function act(a,arg){
   case 'tok':{const[k,t]=arg.split(':');if(PHOTOS[G.players[+k].code])await removePhoto(G.players[+k].code);if(G.stage==='setup')return setupEdit(s=>{s.players[+k].token=+t});return}
   case 'nophoto':return removePhoto(arg);
   case 'start':return commit(s=>{if(!s||s.stage!=='setup')return false;startPlay(s)},{noHist:true,queue:true});
+  case 'toggle3d':OPT3D=!OPT3D;try{localStorage.setItem('smarm-3d',OPT3D?'1':'0')}catch(e){}if(!OPT3D)cam(null,400);return render();
   case 'links':UI.modal='links';return render();
   case 'rules':UI.modal='rules';return render();
   case 'closemodal':UI.modal=null;return render();
