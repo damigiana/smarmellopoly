@@ -162,6 +162,7 @@ body.tvmode{height:100vh;height:100dvh;overflow:hidden}
 .tags{display:flex;gap:.35rem;flex-wrap:wrap}
 .tag{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:.2rem .55rem;border-radius:99px;background:#2a575d}
 .tag.j{background:#1d3fa8;color:#d8e4ff}
+.tag.cc{background:#6b1f3a;color:#ffd1e1}
 .props{display:flex;flex-wrap:wrap;gap:.25rem}
 .pc{width:1.4rem;height:1.8rem;border-radius:.25rem;border:0;cursor:pointer;padding:0;position:relative}
 .pc.m{opacity:.3}
@@ -386,6 +387,7 @@ const mkcode=()=>Array.from({length:5},()=>ALPH[Math.floor(Math.random()*ALPH.le
 const COLORS=['#ffc23d','#ff5a5f','#4ea8ff','#3ad08f','#b98bff','#ff8fd0'];
 const GAME='SMARMELLOPOLY';
 const LAMPO_ROUNDS=12;
+const CC_LIMIT=1000;
 
 /* ---------- pedine ---------- */
 const TOKS=[
@@ -544,17 +546,19 @@ function rent(i){const s=SQ[i],o=X.own[i];
  if(s.t==='prop'){if(o.lv)return s.r[o.lv];return ownsAll(o.o,s.g)?s.r[0]*2:s.r[0]}
  if(s.t==='port')return 25*2**(countType('port',o.o)-1);
  return (countType('util',o.o)===2?10:4)*(X.dice[0]+X.dice[1])}
-function worth(st,j){let w=st.players[j].money;for(const[i,o]of Object.entries(st.own||{})){if(o.o!==j)continue;const s=SQ[i];w+=o.m?s.mort:s.p;if(o.lv)w+=o.lv*GROUPS[s.g].h}return w}
+function worth(st,j){let w=st.players[j].money-(st.players[j].card||0);for(const[i,o]of Object.entries(st.own||{})){if(o.o!==j)continue;const s=SQ[i];w+=o.m?s.mort:s.p;if(o.lv)w+=o.lv*GROUPS[s.g].h}return w}
 function pay(a,b,amt,why){if(!amt)return;X.players[a].money-=amt;if(b!=null)X.players[b].money+=amt;X.cred=b;ev({k:'pay',a,b,amt});
  if(b!=null&&amt>500)ev({k:'sweat',a,b});
  log(`${X.players[a].name} paga ${eur(amt)}${b!=null?' a '+X.players[b].name:''} (${why})`)}
 function gain(a,amt,why){X.players[a].money+=amt;ev({k:'pay',a:null,b:a,amt});log(`${X.players[a].name} riceve ${eur(amt)} (${why})`)}
 function stepTo(target){const p=cur(),path=[];let go=false;while(p.pos!==target){p.pos=(p.pos+1)%40;path.push(p.pos);if(p.pos===0)go=true}
- ev({k:'move',j:X.turn,path});if(go)gain(X.turn,200,'passaggio dalla Partenza')}
+ ev({k:'move',j:X.turn,path});if(go){gain(X.turn,200,'passaggio dalla Partenza');ccBill()}}
+function ccBill(){const p=cur();if(!X.credit||!(p.card>0))return;const bill=p.card;p.card=0;p.money-=bill;X.cred=null;ev({k:'cbill',j:X.turn,amt:bill});log(`${p.name} ripaga la carta di credito: ${eur(bill)}`);ev({k:'toast',txt:`💳 Estratto conto: ${p.name} ripaga ${eur(bill)}`});if(p.money<0)X.noCard=true}
+const ccRoom=p=>X.credit&&!X.noCard?Math.max(0,CC_LIMIT-(p.card||0)):0;
 function stepBack(n){const p=cur(),path=[];for(let k=0;k<n;k++){p.pos=(p.pos+39)%40;path.push(p.pos)}ev({k:'move',j:X.turn,path})}
 function toJail(){const p=cur();p.pos=10;p.jail=true;p.jt=0;X.again=false;X.dbl=0;ev({k:'jail',j:X.turn});log(p.name+' è stato beccato dagli sbirri: in carcere')}
 function settle(){const p=cur();X.mult=1;X.utilX=0;
- if(p.money<0){X.phase='debt';X.msg=`${p.name} è in rosso di ${eur(-p.money)}. Vendi edifici, ipoteca o vendi proprietà agli altri con uno scambio. Altrimenti è bancarotta.`}
+ if(p.money<0){X.phase='debt';X.msg=`${p.name} è in rosso di ${eur(-p.money)}. ${ccRoom(p)>0?'Puoi usare la carta di credito, oppure vendi':'Vendi'} edifici, ipoteca o vendi proprietà agli altri con uno scambio. Altrimenti è bancarotta.`}
  else{X.phase=X.again?'roll':'end';if(X.again)X.msg+=' Doppio: lancia ancora!'}}
 function doRoll(){
  if(X.phase!=='roll')return false;const p=cur();X.card=null;X.msg='';
@@ -616,7 +620,7 @@ function bankrupt(){const a=X.turn,p=cur(),c=X.cred;
  X.phase='end';X.again=false;nextTurn()}
 function nextTurn(){const n=X.players.length;let t=X.turn;do{t=(t+1)%n}while(X.players[t].out);
  if(t<=X.turn){X.round=(X.round||1)+1;if(X.lampo&&X.round>LAMPO_ROUNDS){X.winner={by:'lampo'};X.msg='Fine della partita lampo!';ev({k:'toast',txt:'Fine della partita lampo!'});return}}
- X.turn=t;X.dbl=0;X.again=false;X.card=null;X.phase='roll';const p=cur();
+ X.turn=t;X.dbl=0;X.again=false;X.card=null;X.phase='roll';X.noCard=false;const p=cur();
  X.msg=p.jail?`${p.name}, sei in carcere: prova il doppio, paga €50 di cauzione o chiama l'avvocato.`:`Tocca a ${p.name}.`;ev({k:'turn',j:t})}
 function checkAuction(){const Au=X.auction,s=SQ[Au.i];
  if(Au.act.length===0||(Au.act.length===1&&Au.lead===Au.act[0])){
@@ -668,6 +672,8 @@ const A={
    log(`Scambio ${Pa.name} ↔ ${Pb.name}: ${[nm(O.give),O.gm?eur(O.gm):''].filter(Boolean).join(' + ')||'nulla'} per ${[nm(O.get),O.tm?eur(O.tm):''].filter(Boolean).join(' + ')||'nulla'}`);
    X.offers=X.offers.filter(x=>[...x.give,...x.get].every(i=>!O.give.includes(i)&&!O.get.includes(i)))},
  reject:(w,id)=>{const O=(X.offers||[]).find(x=>x.id===id);if(!O||(w!=='host'&&w!==O.to&&w!==O.from))return false;X.offers=X.offers.filter(x=>x.id!==id);if(w===O.from)log(`${X.players[O.from].name} ritira una proposta`);else{log(`${X.players[O.to].name} rifiuta l'offerta di ${X.players[O.from].name}`);ev({k:'nope',a:O.from,b:O.to})}},
+ usecard:(w)=>{const p=cur();if(!mine(w)||X.phase!=='debt'||p.money>=0)return false;const use=Math.min(-p.money,ccRoom(p));if(use<=0)return false;p.card=(p.card||0)+use;p.money+=use;ev({k:'ccard',j:X.turn,amt:use});log(`${p.name} paga con la carta di credito: ${eur(use)}`);ev({k:'toast',txt:`💳 ${p.name} paga ${eur(use)} con la carta`});if(p.money>=0){X.msg=`${p.name} ha pagato con la carta. Debito sulla carta: ${eur(p.card)}, si ripaga al prossimo passaggio dal Via.`;settle()}else X.msg=`Fido finito: mancano ancora ${eur(-p.money)}.`},
+ buycard:(w)=>{const p=cur();if(!mine(w)||X.phase!=='buy')return false;const s=SQ[p.pos];const need=s.p-p.money;if(need<=0||need>ccRoom(p))return false;p.card=(p.card||0)+need;p.money+=need;ev({k:'ccard',j:X.turn,amt:need});log(`${p.name} usa la carta di credito: ${eur(need)}`);return A.buy(w)},
  finish:(w)=>{if(w!=='host')return false;X.winner={by:'count'}},
  resumeplay:(w)=>{if(w!=='host')return false;X.winner=null}};
 
@@ -703,7 +709,7 @@ function undo(who){commit(s=>{if(!s||!s.hist||!s.hist.length)return false;if(who
 function blankGame(){const ps=[];for(let k=0;k<3;k++)ps.push(newPlayer(k,ps));return {stage:'setup',seq:0,ev:[],hist:[],rev:0,lampo:false,players:ps}}
 function newPlayer(k,ps){const used=ps.map(p=>p.color),ut=ps.map(p=>p.token);return {code:mkcode(),name:'',color:COLORS.find(c=>!used.includes(c))||COLORS[k%6],token:[...Array(10).keys()].find(t=>!ut.includes(t))??0}}
 function startPlay(s){
- s.players=s.players.map((p,k)=>({...p,name:(p.name||'').trim().slice(0,16)||('Giocatore '+(k+1)),money:1500,pos:0,jail:false,jt:0,free:[],out:false}));
+ s.players=s.players.map((p,k)=>({...p,name:(p.name||'').trim().slice(0,16)||('Giocatore '+(k+1)),money:1500,card:0,pos:0,jail:false,jt:0,free:[],out:false}));
  Object.assign(s,{stage:'play',own:{},turn:0,phase:'order',order:{k:0,rolls:{}},dice:[1,1],dbl:0,again:false,round:1,msg:`Chi comincia? Parte il numero più alto. Tira ${s.players[0].name}.`,card:null,log:['Nuova partita'+(s.lampo?' lampo':'')],
   decks:{sorte:shuffle([...Array(16).keys()]),notizie:shuffle([...Array(16).keys()])},auction:null,offers:[],cred:null,winner:null,mult:1,utilX:0,hist:[]})}
 const setupEdit=fn=>commit(s=>{if(!s||s.stage!=='setup')return false;return fn(s)},{noHist:true,queue:true});
@@ -719,7 +725,7 @@ async function savePhoto(code,file){
 async function removePhoto(code){try{if(MODE==='sb'){await SB.from('photos').delete().eq('game_id',ROOM).eq('code',code);delete PHOTOS[code]}else if(MODE==='server')await api('api/photo',{code,img:null});else{delete PHOTOS[code];saveLocal()}}catch(e){}render()}
 
 /* ---------- arrivo nuovi stati e animazioni ---------- */
-const DUR={dice:2700,pay:1500,card:3300,jail:4400,toast:1300,turn:400,strip:5200,sweat:1700,dead:5600,trade:4800,nope:2700,build:2000};
+const DUR={dice:2700,pay:1500,card:3300,jail:4400,toast:1300,turn:400,strip:5200,sweat:1700,dead:5600,trade:4800,nope:2700,build:2000,ccard:900,cbill:900};
 const stepMs=e=>e.path.length>15?130:420;
 function evDur(e){return e.k==='move'?e.path.length*stepMs(e)+(isPhone()?350:800):(DUR[e.k]||0)}
 function onGame(g){
@@ -744,21 +750,60 @@ const posOf=j=>vis&&vis.pos[j]!=null?vis.pos[j]:G.players[j].pos;
 const moneyOf=j=>vis&&vis.money[j]!=null?vis.money[j]:G.players[j].money;
 const diceShown=()=>vis?vis.dice:G.dice;
 let hopJ=-1,hotCell=-1,diceRolling=false;
+/* ---------- suoni (sintetizzati, nessun file) ---------- */
+let SND=true;try{SND=localStorage.getItem('smarm-snd')!=='0'}catch(e){}
+let AC=null,MASTER=null;
+function audioOn(){if(AC||!window.AudioContext&&!window.webkitAudioContext)return;try{AC=new (window.AudioContext||window.webkitAudioContext)();MASTER=AC.createGain();MASTER.gain.value=.55;MASTER.connect(AC.destination)}catch(e){AC=null}}
+document.addEventListener('pointerdown',()=>{audioOn();if(AC&&AC.state==='suspended')AC.resume()},true);
+const canPlay=()=>SND&&AC&&!isPhone();
+function tone(f,t0,d,{type='sine',vol=.3,f2=null,attack=.005}={}){const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t0);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t0+d);
+ g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol,t0+attack);g.gain.exponentialRampToValueAtTime(.0001,t0+d);o.connect(g);g.connect(MASTER);o.start(t0);o.stop(t0+d+.02)}
+let NOISE=null;function noiseBuf(){if(NOISE)return NOISE;const b=AC.createBuffer(1,AC.sampleRate,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return NOISE=b}
+function noise(t0,d,{vol=.3,type='bandpass',f=2000,q=1,f2=null}={}){const s=AC.createBufferSource();s.buffer=noiseBuf();const fl=AC.createBiquadFilter();fl.type=type;fl.frequency.setValueAtTime(f,t0);if(f2)fl.frequency.exponentialRampToValueAtTime(f2,t0+d);fl.Q.value=q;
+ const g=AC.createGain();g.gain.setValueAtTime(vol,t0);g.gain.exponentialRampToValueAtTime(.0001,t0+d);s.connect(fl);fl.connect(g);g.connect(MASTER);s.start(t0,Math.random()*.5);s.stop(t0+d+.02)}
+const SFX={
+ dice(){if(!canPlay())return;const t=AC.currentTime;for(let k=0;k<14;k++){const tt=t+k*.07+Math.random()*.03;noise(tt,.05,{vol:.35,f:2500+Math.random()*2500,q:4});tone(300+Math.random()*200,tt,.04,{type:'triangle',vol:.08})}
+  [1.55,1.7].forEach((d,i)=>{noise(t+d,.12,{vol:.5,type:'lowpass',f:900});tone(140,t+d,.12,{vol:.25,f2:70})})},
+ step(){if(!canPlay())return;const t=AC.currentTime;tone(520,t,.07,{type:'triangle',vol:.12,f2:380});noise(t,.04,{vol:.08,type:'lowpass',f:1200})},
+ land(){if(!canPlay())return;const t=AC.currentTime;tone(160,t,.18,{vol:.3,f2:70});noise(t,.1,{vol:.2,type:'lowpass',f:700})},
+ coin(){if(!canPlay())return;const t=AC.currentTime;tone(1318,t,.12,{type:'square',vol:.07});tone(1760,t+.07,.35,{type:'square',vol:.07});tone(2637,t+.07,.3,{vol:.05})},
+ cash(){if(!canPlay())return;const t=AC.currentTime;noise(t,.08,{vol:.25,f:3000,q:2});tone(988,t+.06,.1,{type:'triangle',vol:.15});tone(1480,t+.14,.4,{type:'triangle',vol:.15});noise(t+.12,.3,{vol:.12,type:'highpass',f:6000})},
+ flip(){if(!canPlay())return;const t=AC.currentTime;noise(t,.18,{vol:.3,f:1200,f2:4000,q:1.5});tone(660,t+.15,.15,{type:'triangle',vol:.1})},
+ siren(){if(!canPlay())return;const t=AC.currentTime;const o=AC.createOscillator(),g=AC.createGain();o.type='sawtooth';for(let k=0;k<8;k++){o.frequency.setValueAtTime(700,t+k*.45);o.frequency.linearRampToValueAtTime(1000,t+k*.45+.22);o.frequency.linearRampToValueAtTime(700,t+k*.45+.45)}
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.07,t+.1);g.gain.setValueAtTime(.07,t+3.4);g.gain.linearRampToValueAtTime(0,t+3.7);const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=2500;o.connect(f);f.connect(g);g.connect(MASTER);o.start(t);o.stop(t+3.8);
+  [1.2,1.32,1.44].forEach(d=>{noise(t+d,.08,{vol:.4,type:'lowpass',f:500})})},
+ build(){if(!canPlay())return;const t=AC.currentTime;[.55,.75,.95].forEach(d=>{noise(t+d,.09,{vol:.5,type:'lowpass',f:1400});tone(220,t+d,.08,{type:'square',vol:.06,f2:110})});tone(660,t+1.2,.15,{type:'triangle',vol:.12});tone(990,t+1.32,.3,{type:'triangle',vol:.12})},
+ deal(){if(!canPlay())return;const t=AC.currentTime;[523,659,784,1047].forEach((f,i)=>tone(f,t+.5+i*.11,.35,{type:'triangle',vol:.14}));[1.4,1.65,1.9,2.15].forEach(d=>noise(t+d,.06,{vol:.15,f:1800,q:2}))},
+ nope(){if(!canPlay())return;const t=AC.currentTime;tone(150,t+.45,.5,{type:'square',vol:.12});tone(110,t+.95,.6,{type:'square',vol:.12})},
+ shots(){if(!canPlay())return;const t=AC.currentTime;[.6,1.2,1.8].forEach(d=>{noise(t+d,.35,{vol:.9,type:'lowpass',f:3000,f2:300});tone(90,t+d,.25,{vol:.4,f2:40})});tone(400,t+2.6,1.2,{type:'sawtooth',vol:.05,f2:60})},
+ sweat(){if(!canPlay())return;const t=AC.currentTime;tone(1400,t,.8,{vol:.1,f2:500});tone(1500,t+.3,.7,{vol:.08,f2:600})},
+ swipe(){if(!canPlay())return;const t=AC.currentTime;noise(t,.25,{vol:.25,f:2500,f2:600,q:1});tone(1046,t+.35,.12,{type:'square',vol:.07});tone(1046,t+.55,.18,{type:'square',vol:.07})},
+ pop(){if(!canPlay())return;const t=AC.currentTime;tone(880,t,.08,{type:'triangle',vol:.1,f2:1200})},
+ groove(dur){if(!canPlay())return;const t0=AC.currentTime+.05,b=60/104,bars=Math.ceil(dur/(b*4));
+  const bass=[55,55,65.4,49],ch=[[220,261.6,329.6],[220,261.6,329.6],[261.6,329.6,392],[196,246.9,293.7]];
+  for(let bar=0;bar<bars;bar++){const tb=t0+bar*4*b,r=bar%4;
+   for(let q=0;q<4;q++){const tq=tb+q*b;if(tq>t0+dur)break;tone(110,tq,.25,{vol:.45,f2:40});noise(tq+b/2,.05,{vol:.12,type:'highpass',f:7000});if(q%2)noise(tq,.15,{vol:.25,f:1800,q:.8});
+    tone(bass[r],tq,b*.9,{type:'sawtooth',vol:.09});tone(bass[r]*2,tq+b/2,b*.4,{type:'sawtooth',vol:.05})}
+   ch[r].forEach(f=>tone(f,tb,b*3.6,{type:'triangle',vol:.035,attack:.08}))}}};
+
 async function play(e){
  const phone=isPhone(),pl=j=>G.players[j]||null;
+ const S={dice:'dice',card:'flip',jail:'siren',build:'build',trade:'deal',nope:'nope',dead:'shots',sweat:'sweat',ccard:'swipe',cbill:'swipe',toast:'pop'}[e.k];if(S)SFX[S]();
+ if(e.k==='strip')SFX.groove(4.8);
  if(e.k==='dice'){diceRolling=true;if(phone){toast(`🎲 ${pl(e.j)?.name||''}: ${e.d[0]} + ${e.d[1]}`);await sleep(1500)}else await diceFx(e);diceRolling=false;if(vis)vis.dice=e.d;render();return}
  if(e.k==='move'){const ms=stepMs(e);
   if(phone){if(vis)vis.pos[e.j]=e.path[e.path.length-1];render();await sleep(300);return}
   await glide(e,ms);return}
  if(e.k==='build'){await buildFx(e,phone);return}
  if(e.k==='nope'){await nopeFx(e,phone);return}
- if(e.k==='pay'){if(vis){if(e.a!=null)vis.money[e.a]-=e.amt;if(e.b!=null)vis.money[e.b]+=e.amt}if(!phone)await moneyFx(e);else await sleep(300);render();return}
+ if(e.k==='pay'){SFX[e.a==null?'coin':'cash']();if(vis){if(e.a!=null)vis.money[e.a]-=e.amt;if(e.b!=null)vis.money[e.b]+=e.amt}if(!phone)await moneyFx(e);else await sleep(300);render();return}
  if(e.k==='sweat'){if(!phone)await sweatFx(e);return}
  if(e.k==='card'){if(phone){await sleep(800);return}await cardFx(e);return}
  if(e.k==='jail'){if(vis)vis.pos[e.j]=10;await jailFx(e,phone);render();return}
  if(e.k==='strip'){if(!phone)await stripFx(e);return}
  if(e.k==='dead'){await deadFx(e,phone);return}
  if(e.k==='trade'){await tradeFx(e,phone);return}
+ if(e.k==='ccard'||e.k==='cbill'){await sleep(phone?200:700);return}
  if(e.k==='toast'){toast(e.txt);await sleep(phone?400:1300);return}
  if(e.k==='turn'){await sleep(400);return}}
 const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -779,7 +824,8 @@ async function glide(e,ms){
  for(const p of e.path){const cell=document.querySelector(`.cell[data-arg="${p}"]`);if(!cell)continue;const c=cell.getBoundingClientRect();
   const nx=c.left+c.width/2-size/2,ny=c.top+c.height/2-size/2,dx=nx-cx,dy=ny-cy;
   try{await g.animate([{transform:'translate(0,0) scale(1)'},{transform:`translate(${dx*.5}px,${dy*.5-size*.55}px) scale(1.12)`,offset:.5},{transform:`translate(${dx}px,${dy}px) scale(1)`}],{duration:ms,easing:'cubic-bezier(.45,.05,.55,.95)'}).finished}catch(err){}
-  g.style.left=nx+'px';g.style.top=ny+'px';cx=nx;cy=ny;hotCell=p;render()}
+  g.style.left=nx+'px';g.style.top=ny+'px';cx=nx;cy=ny;hotCell=p;SFX.step();render()}
+ SFX.land();
  try{await g.animate([{transform:'scale(1.18,.82)'},{transform:'scale(.95,1.05)'},{transform:'scale(1)'}],{duration:260,easing:'ease-out'}).finished}catch(err){}
  if(vis)vis.pos[e.j]=e.path[e.path.length-1];g.remove();render();await sleep(500);hotCell=-1;render()}
 async function buildFx(e,phone){const s=SQ[e.i],what=e.lv===5?'un albergo':'una casa';
@@ -922,9 +968,9 @@ function turnActions(who,c='btn',pc='btn pri'){
  if(G.phase==='roll'){
   if(p.jail)b=`<button class="${pc}" data-act="roll" data-primary ${d(0)}>Tenta il doppio</button><button class="${c}" data-act="payjail" ${d(p.money<50)}>Paga €50 di cauzione</button><button class="${c}" data-act="usefree" ${d(!p.free.length)}>Chiama l'avvocato</button>`;
   else b=`<button class="${pc}" data-act="roll" data-primary ${d(0)}>Lancia i dadi</button>`}
- else if(G.phase==='buy'){const s=SQ[p.pos];b=`<button class="${pc}" data-act="buy" data-primary ${d(p.money<s.p)}>Compra ${esc(s.n)} per ${eur(s.p)}</button><button class="${c}" data-act="auction" ${d(0)}>Metti all'asta</button>`}
+ else if(G.phase==='buy'){const s=SQ[p.pos];const room=G.credit&&!G.noCard?Math.max(0,CC_LIMIT-(p.card||0)):0;b=`<button class="${pc}" data-act="buy" data-primary ${d(p.money<s.p)}>Compra ${esc(s.n)} per ${eur(s.p)}</button>${p.money<s.p&&p.money+room>=s.p?`<button class="${c}" data-act="buycard" ${d(0)}>💳 Compra con la carta (${eur(s.p-p.money)})</button>`:''}<button class="${c}" data-act="auction" ${d(0)}>Metti all'asta</button>`}
  else if(G.phase==='end')b=`<button class="${pc}" data-act="end" data-primary ${d(0)}>Fine turno</button>`;
- else if(G.phase==='debt')b=`<button class="${pc}" data-act="cont" data-primary ${d(p.money<0)}>Debito saldato, continua</button><button class="${c} bad" data-act="bankrupt" ${d(0)}>${UI.confirm==='bankrupt'?'Confermi? Tocca ancora':'Dichiara bancarotta'}</button>`;
+ else if(G.phase==='debt'){const room=G.credit&&!G.noCard?Math.max(0,CC_LIMIT-(p.card||0)):0;b=`${room>0&&p.money<0?`<button class="${pc}" data-act="usecard" ${d(0)}>💳 Paga con la carta (fido ${eur(room)})</button>`:''}<button class="${pc}" data-act="cont" data-primary ${d(p.money<0)}>Debito saldato, continua</button><button class="${c} bad" data-act="bankrupt" ${d(0)}>${UI.confirm==='bankrupt'?'Confermi? Tocca ancora':'Dichiara bancarotta'}</button>`}
  if(G.hist&&G.hist.length)b+=`<button class="${c}" data-act="undo" ${dis?'disabled':''}>↶ Annulla</button>`;
  return `<div class="acts">${b}</div>`}
 const listTxt=(L,m)=>[...L.map(i=>esc(SQ[i].full)),m?eur(m):''].filter(Boolean).join(', ')||'nulla';
@@ -963,12 +1009,12 @@ function sideHTML(){
  ${G.players.map((p,j)=>{const props=SQ.filter(s=>G.own[s.i]&&G.own[s.i].o===j);
   return `<div class="pl${j===G.turn&&G.phase!=='order'?' on':''}${p.out?' out':''}" style="--pc:${p.color}">
    <div class="plh">${avatar(p,'',`data-pav="${j}"`)}<div><div class="pn">${esc(p.name)}</div><div class="pw">Patrimonio ${eur(worth(G,j))}</div></div><div class="pm ${moneyOf(j)<0?'neg':''}">${p.out?'Fuori':eur(moneyOf(j))}</div></div>
-   ${(p.jail||p.free.length)?`<div class="tags">${p.jail?'<span class="tag j">In carcere</span>':''}${p.free.length?`<span class="tag">Avvocato ×${p.free.length}</span>`:''}</div>`:''}
+   ${(p.jail||p.free.length||p.card>0)?`<div class="tags">${p.card>0?`<span class="tag cc">💳 carta −${eur(p.card)}</span>`:''}${p.jail?'<span class="tag j">In carcere</span>':''}${p.free.length?`<span class="tag">Avvocato ×${p.free.length}</span>`:''}</div>`:''}
    ${props.length?`<div class="props">${props.map(s=>{const o=G.own[s.i];return `<button class="pc${o.m?' m':''}" title="${esc(s.full)}" aria-label="${esc(s.full)}" style="background:${s.t==='prop'?GROUPS[s.g].c:s.t==='port'?'#3b6aa8':'#8e62f0'}" data-act="sel" data-arg="${s.i}">${o.lv?`<span>${o.lv===5?'H':o.lv}</span>`:''}</button>`}).join('')}</div>`:''}
    ${j!==G.turn&&!p.out&&ph?`<div><button class="btn" data-act="trade" data-arg="${j}">Scambio con ${esc(p.name)}</button></div>`:''}
   </div>`}).join('')}
  <div class="bankc"><div class="bico" id="bank">${BANKICO}</div><div><div class="pn">Banca</div><div class="pw">Incassa tasse, acquisti e cauzioni. Paga la Partenza e le carte.</div></div></div>
- <div class="sbar"><button class="btn" data-act="fs">Schermo intero</button><button class="btn" data-act="rules">Regole</button>
+ <div class="sbar"><button class="btn" data-act="fs">Schermo intero</button><button class="btn" data-act="snd" aria-pressed="${SND}">${SND?'🔊 Suoni sì':'🔇 Suoni no'}</button><button class="btn" data-act="rules">Regole</button>
   <button class="btn" data-act="finish">${UI.confirm==='finish'?'Confermi? Clicca ancora':'Termina e conta'}</button>
   <button class="btn bad" data-act="newgame">${UI.confirm==='newgame'?'Sicuro? Clicca ancora':'Nuova partita'}</button></div>`}
 
@@ -997,6 +1043,7 @@ function rulesHTML(){return `<div class="ov"><div class="modal"><h2>Come si gioc
  <li>Con un doppio rilanciate. Tre doppi di fila, o la casella Sbirri, vi mandano in carcere. Uscite con un doppio, €50 di cauzione o l'avvocato.</li>
  <li>Gli scambi sono segreti: si propongono dal telefono e compaiono sulla TV solo quando l'altro accetta. Se siete in rosso, vendere una città a un amico può rendere più dell'ipoteca.</li>
  <li>"Annulla" torna indietro di una mossa (fino a 10).</li>
+ <li><b>Carta di credito</b> (se attiva): quando non hai abbastanza soldi puoi pagare con la carta, fino a €${CC_LIMIT} di debito. Al passaggio dal Via ritiri €200 e paghi l'estratto conto: tutto il debito della carta. Se non ce la fai devi ipotecare o vendere, e in quel turno la carta è bloccata.</li>
  <li>Partita lampo: due città a testa all'inizio e ${LAMPO_ROUNDS} giri. Vince il patrimonio più alto.</li>
  <li><b>Patrimonio</b> = soldi in mano + prezzo d'acquisto di ogni proprietà (metà se ipotecata) + quanto hai speso in case e alberghi.</li>
  </ol><div class="acts"><button class="btn pri" data-act="closemodal">Ho capito</button></div></div></div>`}
@@ -1012,12 +1059,12 @@ function setupHTML(){
   <div class="acts"><button class="btn pri" data-act="create">Crea una partita</button>${lastRoomBtn()}<button class="btn" data-act="rules">Regole</button></div>${UI.err?`<p class="banner">${esc(UI.err)}</p>`:''}</div>`;
  const dis=pending?'disabled':'';
  return `<div class="herobg"></div><div class="setup hero">${head}<p>Scrivi i nomi, scegli colore e pedina o carica una foto: diventa la pedina sul tabellone. Ognuno può farlo anche dal telefono con "Collega i telefoni".</p>
- <div class="mode"><button class="${!G.lampo?'on':''}" data-act="lampo" data-arg="0"><b>Partita classica</b><span>Si gioca fino all'ultimo superstite.</span></button><button class="${G.lampo?'on':''}" data-act="lampo" data-arg="1"><b>Partita lampo ⚡</b><span>Due città a testa all'inizio, ${LAMPO_ROUNDS} giri, vince il più ricco.</span></button></div>
+ <div class="mode"><button class="${!G.lampo?'on':''}" data-act="lampo" data-arg="0"><b>Partita classica</b><span>Si gioca fino all'ultimo superstite.</span></button><button class="${G.lampo?'on':''}" data-act="lampo" data-arg="1"><b>Partita lampo ⚡</b><span>Due città a testa all'inizio, ${LAMPO_ROUNDS} giri, vince il più ricco.</span></button><button class="${G.credit?'on':''}" data-act="credit"><b>Carta di credito 💳 ${G.credit?'attiva':'spenta'}</b><span>Paghi anche senza soldi (fido €${CC_LIMIT}). Al passaggio dal Via ripaghi tutto il debito.</span></button></div>
  ${G.players.map((p,k)=>`<div class="prow">${avatar(p)}
   <input class="tin" id="p-name-${k}" data-k="${k}" placeholder="Giocatore ${k+1}" maxlength="16" autocomplete="off" value="${esc(p.name)}">
   <div class="ctrls"><div class="toks10">${TOKS.map((t,ti)=>`<button class="tkb${p.token===ti&&!PHOTOS[p.code]?' on':''}" style="--pc:${p.color}" title="${t[0]}" aria-label="${t[0]}" data-act="tok" data-arg="${k}:${ti}">${tokSVG(ti)}</button>`).join('')}</div>
    <div class="toks10">${COLORS.map(c=>`<button class="cbtn${p.color===c?' on':''}" style="background:${c}" data-act="color" data-arg="${k}:${c}" aria-label="Colore"></button>`).join('')}</div>
-   <label class="btn sm filebtn" style="font-size:.9rem;padding:.45rem .8rem">Foto<input type="file" accept="image/*" data-photo="${p.code}"></label>
+   <label class="btn sm filebtn" style="font-size:.9rem;padding:.45rem .8rem">Foto dalla galleria<input type="file" accept="image/*" data-photo="${p.code}"></label>
    ${PHOTOS[p.code]?`<button class="btn sm" style="font-size:.9rem;padding:.45rem .8rem" data-act="nophoto" data-arg="${p.code}">Togli foto</button>`:''}</div></div>`).join('')}
  <div class="acts" style="gap:.6rem"><button class="btn" data-act="addp" ${G.players.length>=6?'disabled':''} ${dis}>Aggiungi giocatore</button><button class="btn" data-act="remp" ${G.players.length<=2?'disabled':''} ${dis}>Togli giocatore</button>
  <button class="btn" data-act="links">Collega i telefoni</button><button class="btn pri" data-act="start">Inizia la partita</button></div>${UI.err?`<p class="banner">${esc(UI.err)}</p>`:''}</div>`}
@@ -1026,7 +1073,7 @@ function phoneHTML(){
  if(!G)return `<div class="phone"><div class="panel">${MODE!=='local'?'Nessuna partita in corso. Aspetta che il master la crei sulla TV.':'Apri questo link dal Wi-Fi di casa, con il programma avviato sul PC.'}</div></div>`;
  const j=myIdx();if(j<0)return `<div class="phone"><div class="panel">Questo link non corrisponde a nessun giocatore della partita attuale. Inquadra di nuovo il codice sulla TV.</div></div>`;
  const p=G.players[j];const err=(UI.err?`<div class="banner">${esc(UI.err)}</div>`:'')+(netErr?'<div class="banner">Collegamento perso: riprovo da solo…</div>':'');
- const photoCtl=`<div class="acts"><label class="btn filebtn">${PHOTOS[p.code]?'Cambia foto':'Scatta o scegli una foto'}<input type="file" accept="image/*" capture="user" data-photo="${p.code}"></label>${PHOTOS[p.code]?`<button class="btn" data-act="nophoto" data-arg="${p.code}">Togli foto</button>`:''}</div>`;
+ const photoCtl=`<div class="acts"><label class="btn filebtn">📷 Scatta una foto<input type="file" accept="image/*" capture="user" data-photo="${p.code}"></label><label class="btn filebtn">🖼️ Scegli dalla galleria<input type="file" accept="image/*" data-photo="${p.code}"></label>${PHOTOS[p.code]?`<button class="btn" data-act="nophoto" data-arg="${p.code}">Togli foto</button>`:''}</div>`;
  if(G.stage==='setup')return `<div class="phone"><div class="me" style="--pc:${p.color}">${avatar(p)}<div><div class="pn">${esc(p.name||'Giocatore '+(j+1))}</div><div class="hint">In attesa che il master avvii la partita</div></div></div>${err}
   <div class="panel"><h3>Il tuo nome</h3><input class="tin" id="ph-name" data-k="${j}" maxlength="16" autocomplete="off" placeholder="Giocatore ${j+1}" value="${esc(p.name)}"><div class="hint">Viene salvato quando chiudi la tastiera.</div></div>
   <div class="panel"><h3>La tua pedina</h3><div class="toks10">${TOKS.map((t,ti)=>`<button class="tkb${p.token===ti&&!PHOTOS[p.code]?' on':''}" style="--pc:${p.color}" aria-label="${t[0]}" data-act="tok" data-arg="${j}:${ti}">${tokSVG(ti)}</button>`).join('')}</div>${photoCtl}</div></div>`;
@@ -1039,7 +1086,7 @@ function phoneHTML(){
  const tradeBox=UI.draft?`<div class="panel"><h3>Nuova proposta a ${esc(G.players[UI.draft.to].name)}</h3><div class="tdraft">${tradeDraft(j)}</div></div>`:
   canTrade?`<div class="panel"><h3>${debt?'Vendi agli altri per rientrare':'Proponi uno scambio segreto'}</h3><div class="acts">${G.players.map((q,k)=>k!==j&&!q.out?`<button class="btn" data-act="trade" data-arg="${k}">${esc(q.name)}</button>`:'').join('')}</div></div>`:'';
  const _px=X;X=G;
- const h=`<div class="phone"><div class="me" style="--pc:${p.color}">${avatar(p)}<div><div class="pn">${esc(p.name)}</div><div class="big ${p.money<0?'neg':''}">${p.out?'Fuori':eur(busy?moneyOf(j):p.money)}</div>${p.jail?'<span class="tag j">In carcere</span>':''}</div></div>${err}
+ const h=`<div class="phone"><div class="me" style="--pc:${p.color}">${avatar(p)}<div><div class="pn">${esc(p.name)}</div><div class="big ${p.money<0?'neg':''}">${p.out?'Fuori':eur(busy?moneyOf(j):p.money)}</div>${p.jail?'<span class="tag j">In carcere</span>':''}${p.card>0?`<span class="tag cc">💳 carta −${eur(p.card)}</span>`:''}</div></div>${err}
  ${G.winner&&!busy?winnerHTML(j):''}
  <div class="panel"><h3>${G.phase==='order'?'Chi comincia?':myTurn?'Tocca a te!':'Tocca a '+esc(turn.name)}</h3>
   ${busy?'<div class="wait">Guarda la TV…</div>':`<div>${esc(G.msg)}</div>
@@ -1081,6 +1128,10 @@ async function act(a,arg){
  switch(a){
   case 'create':if(MODE==='sb'){const r=(mkcode()+mkcode()).slice(0,6);history.replaceState(null,'','?r='+r);G=null;sbJoin(r)}return commit(()=>blankGame(),{noHist:true});
   case 'resumeroom':history.replaceState(null,'','?r='+arg);return sbJoin(arg);
+  case 'snd':SND=!SND;try{localStorage.setItem('smarm-snd',SND?'1':'0')}catch(e){}audioOn();if(SND)SFX.pop();return render();
+  case 'credit':return setupEdit(s=>{s.credit=!s.credit});
+  case 'usecard':return doAct(w,'usecard');
+  case 'buycard':return doAct(w,'buycard');
   case 'lampo':return setupEdit(s=>{s.lampo=arg==='1'});
   case 'addp':return setupEdit(s=>{if(s.players.length<6)s.players.push(newPlayer(s.players.length,s.players))});
   case 'remp':return setupEdit(s=>{if(s.players.length>2)s.players.pop()});
