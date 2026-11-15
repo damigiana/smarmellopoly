@@ -195,9 +195,25 @@ body.tvmode{height:100vh;height:100dvh;overflow:hidden}
 .qr .qrbox svg{width:100%;height:100%}
 .qr code{font-size:.8rem;word-break:break-all;color:var(--muted);user-select:all}
 .rank{display:flex;flex-direction:column;gap:.5rem}
-.rank div{display:flex;gap:.8rem;align-items:center;font-size:1.25rem;background:rgba(0,0,0,.22);padding:.6rem .9rem;border-radius:.6rem}
+.rank>div{display:flex;gap:.8rem;align-items:center;font-size:1.25rem;background:rgba(0,0,0,.22);padding:.6rem .9rem;border-radius:.6rem}
 .rank .av{width:2.6rem;height:2.6rem}
 .rank b{margin-left:auto;font-variant-numeric:tabular-nums}
+.modal h3{margin:.4rem 0 0;font-size:1.2rem;color:var(--accent)}
+.stwrap{overflow-x:auto;flex:none}
+.modal>*{flex-shrink:0}
+table.stats{border-collapse:collapse;width:100%;font-size:.95rem;font-variant-numeric:tabular-nums}
+table.stats th,table.stats td{padding:.45rem .6rem;border-bottom:1px solid #2c5a60;text-align:right;white-space:nowrap}
+table.stats thead th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}
+table.stats tbody th{text-align:left}
+table.stats tbody th .who2{display:flex;align-items:center;gap:.5rem}
+table.stats thead th{white-space:normal;min-width:5.5rem;vertical-align:bottom}
+table.stats .av,.flows .av,.awards .av{width:2rem;height:2rem;border-width:2px}
+.flows{display:flex;flex-direction:column;gap:.35rem}
+.flows>div{display:flex;align-items:center;gap:.5rem;background:rgba(0,0,0,.2);border-radius:.6rem;padding:.4rem .7rem}
+.flows i{color:var(--muted);font-style:normal}.flows b{margin-left:auto;font-variant-numeric:tabular-nums}
+.awards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(15rem,100%),1fr));gap:.6rem}
+.awards>div{display:flex;gap:.7rem;align-items:center;background:rgba(0,0,0,.2);border-radius:.7rem;padding:.6rem .8rem}
+.awards b{display:block}.awards span{color:var(--muted);font-size:.9rem}
 .rules{line-height:1.5;color:#d3e0db}
 
 /* configurazione */
@@ -547,16 +563,17 @@ function rent(i){const s=SQ[i],o=X.own[i];
  if(s.t==='port')return 25*2**(countType('port',o.o)-1);
  return (countType('util',o.o)===2?10:4)*(X.dice[0]+X.dice[1])}
 function worth(st,j){let w=st.players[j].money-(st.players[j].card||0);for(const[i,o]of Object.entries(st.own||{})){if(o.o!==j)continue;const s=SQ[i];w+=o.m?s.mort:s.p;if(o.lv)w+=o.lv*GROUPS[s.g].h}return w}
-function pay(a,b,amt,why){if(!amt)return;X.players[a].money-=amt;if(b!=null)X.players[b].money+=amt;X.cred=b;ev({k:'pay',a,b,amt});
+function stc(j){X.stats=X.stats||{};const c=X.players[j].code;return X.stats[c]=X.stats[c]||{paidTo:{},recv:0,paid:0,bank:0,bought:0,built:0,jail:0,go:0,card:0}}
+function pay(a,b,amt,why){if(!amt)return;{const sa=stc(a);if(b!=null){const cb=X.players[b].code;sa.paidTo[cb]=(sa.paidTo[cb]||0)+amt;sa.paid+=amt;stc(b).recv+=amt}else sa.bank+=amt}X.players[a].money-=amt;if(b!=null)X.players[b].money+=amt;X.cred=b;ev({k:'pay',a,b,amt});
  if(b!=null&&amt>500)ev({k:'sweat',a,b});
  log(`${X.players[a].name} paga ${eur(amt)}${b!=null?' a '+X.players[b].name:''} (${why})`)}
 function gain(a,amt,why){X.players[a].money+=amt;ev({k:'pay',a:null,b:a,amt});log(`${X.players[a].name} riceve ${eur(amt)} (${why})`)}
 function stepTo(target){const p=cur(),path=[];let go=false;while(p.pos!==target){p.pos=(p.pos+1)%40;path.push(p.pos);if(p.pos===0)go=true}
- ev({k:'move',j:X.turn,path});if(go){gain(X.turn,200,'passaggio dalla Partenza');ccBill()}}
+ ev({k:'move',j:X.turn,path});if(go){stc(X.turn).go++;gain(X.turn,200,'passaggio dalla Partenza');ccBill()}}
 function ccBill(){const p=cur();if(!X.credit||!(p.card>0))return;const bill=p.card;p.card=0;p.money-=bill;X.cred=null;ev({k:'cbill',j:X.turn,amt:bill});log(`${p.name} ripaga la carta di credito: ${eur(bill)}`);ev({k:'toast',txt:`💳 Estratto conto: ${p.name} ripaga ${eur(bill)}`});if(p.money<0)X.noCard=true}
 const ccRoom=p=>X.credit&&!X.noCard?Math.max(0,CC_LIMIT-(p.card||0)):0;
 function stepBack(n){const p=cur(),path=[];for(let k=0;k<n;k++){p.pos=(p.pos+39)%40;path.push(p.pos)}ev({k:'move',j:X.turn,path})}
-function toJail(){const p=cur();p.pos=10;p.jail=true;p.jt=0;X.again=false;X.dbl=0;ev({k:'jail',j:X.turn});log(p.name+' è stato beccato dagli sbirri: in carcere')}
+function toJail(){const p=cur();stc(X.turn).jail++;p.pos=10;p.jail=true;p.jt=0;X.again=false;X.dbl=0;ev({k:'jail',j:X.turn});log(p.name+' è stato beccato dagli sbirri: in carcere')}
 function settle(){const p=cur();X.mult=1;X.utilX=0;
  if(p.money<0){X.phase='debt';X.msg=`${p.name} è in rosso di ${eur(-p.money)}. ${ccRoom(p)>0?'Puoi usare la carta di credito, oppure vendi':'Vendi'} edifici, ipoteca o vendi proprietà agli altri con uno scambio. Altrimenti è bancarotta.`}
  else{X.phase=X.again?'roll':'end';if(X.again)X.msg+=' Doppio: lancia ancora!'}}
@@ -624,7 +641,7 @@ function nextTurn(){const n=X.players.length;let t=X.turn;do{t=(t+1)%n}while(X.p
  X.msg=p.jail?`${p.name}, sei in carcere: prova il doppio, paga €50 di cauzione o chiama l'avvocato.`:`Tocca a ${p.name}.`;ev({k:'turn',j:t})}
 function checkAuction(){const Au=X.auction,s=SQ[Au.i];
  if(Au.act.length===0||(Au.act.length===1&&Au.lead===Au.act[0])){
-  if(Au.lead!=null){pay(Au.lead,null,Au.bid,'asta di '+s.full);X.own[Au.i]={o:Au.lead,lv:0,m:false};X.msg=`${X.players[Au.lead].name} si aggiudica ${s.full} per ${eur(Au.bid)}.`;ev({k:'toast',txt:`${X.players[Au.lead].name} vince l'asta: ${s.full}`})}
+  if(Au.lead!=null){pay(Au.lead,null,Au.bid,'asta di '+s.full);stc(Au.lead).bought++;X.own[Au.i]={o:Au.lead,lv:0,m:false};X.msg=`${X.players[Au.lead].name} si aggiudica ${s.full} per ${eur(Au.bid)}.`;ev({k:'toast',txt:`${X.players[Au.lead].name} vince l'asta: ${s.full}`})}
   else X.msg=`Nessuno vuole ${s.full}: resta alla banca.`;
   X.auction=null;settle()}}
 function finishOrder(){
@@ -643,7 +660,7 @@ const A={
  orderroll:(w)=>{if(X.phase!=='order')return false;const j=X.order.k;if(w!=='host'&&w!==j)return false;const d=[r6(),r6()];X.dice=d;ev({k:'dice',d,j});X.order.rolls[j]=d[0]+d[1];log(`${X.players[j].name} tira ${d[0]+d[1]} per l'ordine`);X.order.k++;
    if(X.order.k>=X.players.length)finishOrder();else X.msg=`Tocca a ${X.players[X.order.k].name} tirare per l'ordine.`},
  roll:(w)=>mine(w)&&doRoll(),
- buy:(w)=>{if(!mine(w)||X.phase!=='buy')return false;const s=SQ[cur().pos];if(cur().money<s.p)return false;pay(X.turn,null,s.p,'acquisto di '+s.full);X.own[s.i]={o:X.turn,lv:0,m:false};X.msg=`${cur().name} compra ${s.full}.`;ev({k:'toast',txt:`${cur().name} compra ${s.full}!`});settle()},
+ buy:(w)=>{if(!mine(w)||X.phase!=='buy')return false;const s=SQ[cur().pos];if(cur().money<s.p)return false;stc(X.turn).bought++;pay(X.turn,null,s.p,'acquisto di '+s.full);X.own[s.i]={o:X.turn,lv:0,m:false};X.msg=`${cur().name} compra ${s.full}.`;ev({k:'toast',txt:`${cur().name} compra ${s.full}!`});settle()},
  auction:(w)=>{if(!mine(w)||X.phase!=='buy')return false;const s=SQ[cur().pos];const act=[];for(let k=0;k<X.players.length;k++){const j=(X.turn+k)%X.players.length;if(!X.players[j].out)act.push(j)}
    X.auction={i:s.i,bid:0,lead:null,act};X.phase='auction';X.msg=`Asta per ${s.full}! Ognuno rilancia o si ritira.`;log('Asta per '+s.full)},
  bid:(w,j,inc)=>{const Au=X.auction;if(!Au||(w!=='host'&&w!==j)||!Au.act.includes(j))return false;const nb=Au.bid+inc;if(X.players[j].money<nb)return false;Au.bid=nb;Au.lead=j;checkAuction()},
@@ -651,7 +668,7 @@ const A={
  end:(w)=>{if(!mine(w)||X.phase!=='end')return false;nextTurn()},
  payjail:(w)=>{const p=cur();if(!mine(w)||!p.jail||X.phase!=='roll'||p.money<50)return false;pay(X.turn,null,50,'cauzione');p.jail=false;X.msg='Cauzione pagata, sei libero. Ora lancia i dadi.'},
  usefree:(w)=>{const p=cur();if(!mine(w)||!p.jail||!p.free.length||X.phase!=='roll')return false;const[d,k]=p.free.pop();X.decks[d].push(k);p.jail=false;log(p.name+" chiama l'avvocato ed esce");X.msg="L'avvocato ti tira fuori. Ora lancia i dadi."},
- build:(w,i)=>{if(!mine(w)||!canBuild(i))return false;const s=SQ[i];X.own[i].lv++;ev({k:'build',i,lv:X.own[i].lv,j:X.turn});pay(X.turn,null,GROUPS[s.g].h,(X.own[i].lv===5?'albergo a ':'casa a ')+s.n)},
+ build:(w,i)=>{if(!mine(w)||!canBuild(i))return false;const s=SQ[i];X.own[i].lv++;stc(X.turn).built++;ev({k:'build',i,lv:X.own[i].lv,j:X.turn});pay(X.turn,null,GROUPS[s.g].h,(X.own[i].lv===5?'albergo a ':'casa a ')+s.n)},
  sell:(w,i)=>{if(!mine(w)||!canSell(i))return false;const s=SQ[i];X.own[i].lv--;gain(X.turn,GROUPS[s.g].h/2,'vendita edificio a '+s.n)},
  mort:(w,i)=>{if(!mine(w)||!canMort(i))return false;X.own[i].m=true;gain(X.turn,SQ[i].mort,'ipoteca di '+SQ[i].full)},
  unmort:(w,i)=>{if(!mine(w)||!canUnmort(i))return false;X.own[i].m=false;pay(X.turn,null,unm(i),'riscatto di '+SQ[i].full)},
@@ -672,8 +689,8 @@ const A={
    log(`Scambio ${Pa.name} ↔ ${Pb.name}: ${[nm(O.give),O.gm?eur(O.gm):''].filter(Boolean).join(' + ')||'nulla'} per ${[nm(O.get),O.tm?eur(O.tm):''].filter(Boolean).join(' + ')||'nulla'}`);
    X.offers=X.offers.filter(x=>[...x.give,...x.get].every(i=>!O.give.includes(i)&&!O.get.includes(i)))},
  reject:(w,id)=>{const O=(X.offers||[]).find(x=>x.id===id);if(!O||(w!=='host'&&w!==O.to&&w!==O.from))return false;X.offers=X.offers.filter(x=>x.id!==id);if(w===O.from)log(`${X.players[O.from].name} ritira una proposta`);else{log(`${X.players[O.to].name} rifiuta l'offerta di ${X.players[O.from].name}`);ev({k:'nope',a:O.from,b:O.to})}},
- usecard:(w)=>{const p=cur();if(!mine(w)||X.phase!=='debt'||p.money>=0)return false;const use=Math.min(-p.money,ccRoom(p));if(use<=0)return false;p.card=(p.card||0)+use;p.money+=use;ev({k:'ccard',j:X.turn,amt:use});log(`${p.name} paga con la carta di credito: ${eur(use)}`);ev({k:'toast',txt:`💳 ${p.name} paga ${eur(use)} con la carta`});if(p.money>=0){X.msg=`${p.name} ha pagato con la carta. Debito sulla carta: ${eur(p.card)}, si ripaga al prossimo passaggio dal Via.`;settle()}else X.msg=`Fido finito: mancano ancora ${eur(-p.money)}.`},
- buycard:(w)=>{const p=cur();if(!mine(w)||X.phase!=='buy')return false;const s=SQ[p.pos];const need=s.p-p.money;if(need<=0||need>ccRoom(p))return false;p.card=(p.card||0)+need;p.money+=need;ev({k:'ccard',j:X.turn,amt:need});log(`${p.name} usa la carta di credito: ${eur(need)}`);return A.buy(w)},
+ usecard:(w)=>{const p=cur();if(!mine(w)||X.phase!=='debt'||p.money>=0)return false;const use=Math.min(-p.money,ccRoom(p));if(use<=0)return false;p.card=(p.card||0)+use;stc(X.turn).card+=use;p.money+=use;ev({k:'ccard',j:X.turn,amt:use});log(`${p.name} paga con la carta di credito: ${eur(use)}`);ev({k:'toast',txt:`💳 ${p.name} paga ${eur(use)} con la carta`});if(p.money>=0){X.msg=`${p.name} ha pagato con la carta. Debito sulla carta: ${eur(p.card)}, si ripaga al prossimo passaggio dal Via.`;settle()}else X.msg=`Fido finito: mancano ancora ${eur(-p.money)}.`},
+ buycard:(w)=>{const p=cur();if(!mine(w)||X.phase!=='buy')return false;const s=SQ[p.pos];const need=s.p-p.money;if(need<=0||need>ccRoom(p))return false;p.card=(p.card||0)+need;stc(X.turn).card+=need;p.money+=need;ev({k:'ccard',j:X.turn,amt:need});log(`${p.name} usa la carta di credito: ${eur(need)}`);return A.buy(w)},
  finish:(w)=>{if(w!=='host')return false;X.winner={by:'count'}},
  resumeplay:(w)=>{if(w!=='host')return false;X.winner=null}};
 
@@ -762,8 +779,11 @@ let NOISE=null;function noiseBuf(){if(NOISE)return NOISE;const b=AC.createBuffer
 function noise(t0,d,{vol=.3,type='bandpass',f=2000,q=1,f2=null}={}){const s=AC.createBufferSource();s.buffer=noiseBuf();const fl=AC.createBiquadFilter();fl.type=type;fl.frequency.setValueAtTime(f,t0);if(f2)fl.frequency.exponentialRampToValueAtTime(f2,t0+d);fl.Q.value=q;
  const g=AC.createGain();g.gain.setValueAtTime(vol,t0);g.gain.exponentialRampToValueAtTime(.0001,t0+d);s.connect(fl);fl.connect(g);g.connect(MASTER);s.start(t0,Math.random()*.5);s.stop(t0+d+.02)}
 const SFX={
- dice(){if(!canPlay())return;const t=AC.currentTime;for(let k=0;k<14;k++){const tt=t+k*.07+Math.random()*.03;noise(tt,.05,{vol:.35,f:2500+Math.random()*2500,q:4});tone(300+Math.random()*200,tt,.04,{type:'triangle',vol:.08})}
-  [1.55,1.7].forEach((d,i)=>{noise(t+d,.12,{vol:.5,type:'lowpass',f:900});tone(140,t+d,.12,{vol:.25,f2:70})})},
+ dice(){if(!canPlay())return;const t=AC.currentTime;
+  const click=(tt,v)=>{noise(tt,.012+Math.random()*.012,{vol:v,type:'highpass',f:2200+Math.random()*1800});noise(tt,.03,{vol:v*.45,type:'bandpass',f:900+Math.random()*700,q:2.5})};
+  const knock=(tt,v)=>{noise(tt,.06,{vol:v,type:'lowpass',f:380+Math.random()*120});noise(tt,.02,{vol:v*.5,type:'bandpass',f:1600,q:3})};
+  let tt=t+.05;for(let k=0;k<9;k++){click(tt,.32);if(Math.random()<.5)click(tt+.012+Math.random()*.02,.2);tt+=.05+Math.random()*.05}
+  const hits=[1.0,1.18,1.32,1.43,1.52,1.6];hits.forEach((d,i)=>{const v=.55*(1-i/hits.length)+.12;knock(t+d,v);click(t+d+.004,v*.7);if(i<3)click(t+d+.03+Math.random()*.02,v*.5)})},
  step(){if(!canPlay())return;const t=AC.currentTime;tone(520,t,.07,{type:'triangle',vol:.12,f2:380});noise(t,.04,{vol:.08,type:'lowpass',f:1200})},
  land(){if(!canPlay())return;const t=AC.currentTime;tone(160,t,.18,{vol:.3,f2:70});noise(t,.1,{vol:.2,type:'lowpass',f:700})},
  coin(){if(!canPlay())return;const t=AC.currentTime;tone(1318,t,.12,{type:'square',vol:.07});tone(1760,t+.07,.35,{type:'square',vol:.07});tone(2637,t+.07,.3,{vol:.05})},
@@ -1047,9 +1067,20 @@ function rulesHTML(){return `<div class="ov"><div class="modal"><h2>Come si gioc
  <li>Partita lampo: due città a testa all'inizio e ${LAMPO_ROUNDS} giri. Vince il patrimonio più alto.</li>
  <li><b>Patrimonio</b> = soldi in mano + prezzo d'acquisto di ogni proprietà (metà se ipotecata) + quanto hai speso in case e alberghi.</li>
  </ol><div class="acts"><button class="btn pri" data-act="closemodal">Ho capito</button></div></div></div>`}
+function statsHTML(){const S=G.stats||{};if(!Object.keys(S).length)return '<p class="rules">Le statistiche ci sono solo per le partite iniziate con la versione nuova.</p>';
+ const P=G.players,st=p=>S[p.code]||{paidTo:{},recv:0,paid:0,bank:0,bought:0,built:0,jail:0,go:0,card:0};
+ const cols=[['recv','Affitti incassati',1],['paid','Affitti pagati',1],['bank','Dato alla banca',1],['bought','Proprietà comprate'],['built','Case e alberghi'],['jail','Volte in carcere'],['go','Passaggi dal Via']];
+ if(G.credit)cols.push(['card','Speso con la carta',1]);
+ const tbl=`<div class="stwrap"><table class="stats"><thead><tr><th></th>${cols.map(c=>`<th>${c[1]}</th>`).join('')}</tr></thead><tbody>${P.map(p=>`<tr><th><div class="who2">${avatar(p)}<span>${esc(p.name)}</span></div></th>${cols.map(c=>`<td>${c[2]?eur(st(p)[c[0]]||0):(st(p)[c[0]]||0)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+ const flows=[];P.forEach(a=>P.forEach(b=>{const v=(st(a).paidTo||{})[b.code]||0;if(v>0)flows.push({a,b,v})}));flows.sort((x,y)=>y.v-x.v);
+ const flowH=flows.length?`<h3>Chi ha pagato a chi</h3><div class="flows">${flows.map(f=>`<div>${avatar(f.a)}<span>${esc(f.a.name)}</span><i>→</i>${avatar(f.b)}<span>${esc(f.b.name)}</span><b>${eur(f.v)}</b></div>`).join('')}</div>`:'';
+ const best=(k,min=1)=>{let w=null;P.forEach(p=>{const v=st(p)[k]||0;if(v>=min&&(!w||v>w.v))w={p,v}});return w};
+ const aw=[['recv','💰 Lo strozzino','ha incassato più affitti',1],['paid','💸 Il benefattore','ha pagato più affitti a tutti',1],['jail','🚔 Il galeotto','è finito più volte in carcere',0],['built','🏗️ Il palazzinaro','ha costruito più case',0],['bank','🏦 Amico della banca','ha dato più soldi alla banca',1]].map(([k,t,d,m])=>{const w=best(k);return w?`<div>${avatar(w.p)}<div><b>${t}</b><span>${esc(w.p.name)} ${d}: ${m?eur(w.v):w.v}</span></div></div>`:''}).join('');
+ return `<h3>Statistiche</h3>${tbl}${flowH}${aw?`<h3>Premi</h3><div class="awards">${aw}</div>`:''}`}
 function winnerHTML(who){const rank=G.players.map((p,j)=>({p,j,w:p.out?-1:worth(G,j)})).sort((a,b)=>b.w-a.w);
  return `<div class="ov"><div class="modal"><h2>${esc(rank[0].p.name)} vince ${GAME}🧃</h2>${G.winner.by==='lampo'?'<p class="rules">Fine dei giri della partita lampo: vince il patrimonio più alto.</p>':''}
   <div class="rank">${rank.map((r,k)=>`<div>${k+1}. ${avatar(r.p)} ${esc(r.p.name)}<b>${r.p.out?'Bancarotta':eur(r.w)}</b></div>`).join('')}</div>
+  ${statsHTML()}
   ${who==='host'?`<div class="acts"><button class="btn pri" data-act="newgame2">Nuova partita</button>${G.winner.by==='count'?'<button class="btn" data-act="resumeplay">Torna al tavolo</button>':''}</div>`:''}</div></div>`}
 
 function lastRoomBtn(){if(MODE!=='sb'||ROOM)return '';let r=null;try{r=localStorage.getItem('smarm-room')}catch(e){}return r&&/^[a-z0-9]{4,12}$/.test(r)?`<button class="btn" data-act="resumeroom" data-arg="${r}">Riprendi l'ultima partita</button>`:''}
