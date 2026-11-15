@@ -307,6 +307,19 @@ body.tvmode{height:100vh;height:100dvh;overflow:hidden}
 .tradefx .shake{font-size:14vmin;animation:hs .5s ease-in-out infinite alternate}
 .hs-row{display:flex;align-items:center;justify-content:center;width:min(96vw,150vmin)}
 .hs-row .av{width:24vmin;height:24vmin;border-width:1vmin;position:relative;z-index:2}
+.hs-img{width:min(62vmin,46vw);margin:0 -5vmin;z-index:1;-webkit-mask-image:radial-gradient(ellipse 52% 48% at 50% 50%,#000 55%,transparent 100%);mask-image:radial-gradient(ellipse 52% 48% at 50% 50%,#000 55%,transparent 100%);animation:hsin .6s .4s cubic-bezier(.3,1.3,.5,1) both,shk2 .3s 1.05s ease-in-out 8 alternate}
+@keyframes hsin{from{transform:scale(.2);opacity:0}}
+@keyframes shk2{from{transform:translateY(-2.4vmin) rotate(-2deg)}to{transform:translateY(2.4vmin) rotate(2deg)}}
+.dancer-img{height:74vh;max-width:90vw;object-fit:contain;margin-top:6vh;position:relative;transform-origin:50% 100%;-webkit-mask-image:radial-gradient(ellipse 62% 56% at 50% 52%,#000 62%,transparent 100%);mask-image:radial-gradient(ellipse 62% 56% at 50% 52%,#000 62%,transparent 100%);animation:sway 2.2s ease-in-out infinite alternate}
+@keyframes sway{from{transform:rotate(-1.4deg) translateY(0)}to{transform:rotate(1.4deg) translateY(-1.4vh)}}
+.bigbuild{position:fixed;z-index:88;filter:drop-shadow(0 1rem 1rem rgba(0,0,0,.6))}
+.bigbuild svg{width:100%;height:100%}
+.puff{position:fixed;width:2.4rem;height:2.4rem;border-radius:50%;background:radial-gradient(circle,#f2efe6,rgba(242,239,230,0) 70%);z-index:87;pointer-events:none}
+.nope{display:flex;flex-direction:column;align-items:center;gap:3vmin;color:#fff;text-align:center}
+.nope .thumb{font-size:16vmin;animation:hs .35s ease-in-out infinite alternate}
+.nopestamp{font-family:var(--display);font-weight:900;font-size:9vmin;color:#ff4d4d;border:1vmin solid #ff4d4d;border-radius:2vmin;padding:0 3vmin;transform:rotate(-5deg) scale(3);opacity:0;animation:stamp .35s cubic-bezier(.3,1.5,.5,1) forwards .5s}
+.nopesub{font-size:4vmin;font-weight:700}
+
 .hs-row .av.l{animation:inl .7s cubic-bezier(.3,1.3,.5,1) both}.hs-row .av.r{animation:inr .7s cubic-bezier(.3,1.3,.5,1) both}
 @keyframes inl{from{transform:translateX(-40vw) rotate(-20deg)}}@keyframes inr{from{transform:translateX(40vw) rotate(20deg)}}
 .arms{width:min(52vmin,40vw);height:auto;margin:0 -4vmin;overflow:visible;z-index:1}
@@ -406,27 +419,30 @@ const tokSVG=k=>`<svg viewBox="0 0 64 64" fill="#1b1b1b" aria-hidden="true">${TO
 
 /* ---------- tabellone ---------- */
 const GROUPS=[
- {n:'Basilicata',c:'#a8693c',c2:'#e2a36f',h:50},{n:'Puglia',c:'#159fb0',c2:'#69e0e6',h:50},
+ {n:"Valle d'Aosta e Canavese",c:'#a8693c',c2:'#e2a36f',h:50},{n:'Puglia',c:'#159fb0',c2:'#69e0e6',h:50},
  {n:'Sicilia',c:'#ee7a12',c2:'#ffc070',h:100},{n:'Campania',c:'#d43f8d',c2:'#ff9cc9',h:100},
  {n:'Emilia-Romagna',c:'#d62f37',c2:'#ff8a7a',h:150},{n:'Toscana',c:'#d9a90b',c2:'#ffe46b',h:150},
- {n:'Lazio',c:'#1f9a57',c2:'#7ee6a2',h:200},{n:'Lombardia',c:'#2f47c4',c2:'#8fa4ff',h:200}];
+ {n:'Lazio',c:'#1f9a57',c2:'#7ee6a2',h:200},{n:'Milano e Monte Bianco',c:'#2f47c4',c2:'#8fa4ff',h:200}];
 const BASE=[4,7,10,14,18,22,26,36];
-const P=(n,g,p,lm,last)=>({t:'prop',n,g,p,lm,last:!!last});
+const P=(n,g,p,lm,last,full)=>({t:'prop',n,g,p,lm,last:!!last,full});
 const SQ=[
- {t:'go',n:'Partenza'},P('Potenza',0,70,'hills'),{t:'notizie',n:'Notizie'},P('Matera',0,80,'sassi',1),{t:'tax',n:'Tasse',v:200,full:'Tassa sul reddito'},
- {t:'port',n:'Genova',p:200,full:'Porto di Genova'},P('Lecce',1,110,'baroque'),{t:'sorte',n:'Sorte'},P('Ostuni',1,110,'white'),P('Bari',1,130,'castle',1),
- {t:'jail',n:'Carcere'},P('Catania',2,150,'etna'),{t:'util',n:'Autostrade',p:150,full:'Rete Autostradale'},P('Siracusa',2,150,'temple'),P('Palermo',2,170,'redomes',1),
- {t:'port',n:'Ancona',p:200,full:'Porto di Ancona'},P('Salerno',3,190,'sea'),{t:'notizie',n:'Notizie'},P('Amalfi',3,190,'cliff'),P('Napoli',3,210,'volcano',1),
- {t:'free',n:'Strip Club'},P('Ravenna',4,230,'basilica'),{t:'sorte',n:'Sorte'},P('Modena',4,230,'campanile'),P('Bologna',4,250,'twotowers',1),
+ {t:'go',n:'Partenza'},P('Ivrea',0,70,'castle'),{t:'notizie',n:'Notizie'},P('Aosta',0,80,'arch',1),{t:'tax',n:'Tasse',v:200,full:'Tassa sul reddito'},
+ {t:'port',n:'Genova',p:200,full:'Porto di Genova'},P('Lecce',1,110,'baroque'),{t:'sorte',n:'Sorte'},P('S. Pietro Vernotico',1,110,'white',0,'San Pietro Vernotico'),P('Parabita',1,130,'hills',1),
+ {t:'jail',n:'Carcere'},P('Marsala',2,150,'mill'),{t:'util',n:'Autostrade',p:150,full:'Rete Autostradale'},P('S. Vito Lo Capo',2,150,'lake',0,'San Vito Lo Capo'),P('Trapani',2,170,'sea',1),
+ {t:'port',n:'Ancona',p:200,full:'Porto di Ancona'},P('T. Annunziata',3,190,'sea',0,'Torre Annunziata'),{t:'notizie',n:'Notizie'},P('C/mare di Stabia',3,190,'cliff',0,'Castellammare di Stabia'),P('Napoli',3,210,'volcano',1),
+ {t:'free',n:'Strip Club'},P('Parma',4,230,'basilica'),{t:'sorte',n:'Sorte'},P('Forlì',4,230,'campanile'),P('Bologna',4,250,'twotowers',1),
  {t:'port',n:'Livorno',p:200,full:'Porto di Livorno'},P('Siena',5,270,'tower'),P('Lucca',5,270,'treetower'),{t:'util',n:'Fibra',p:150,full:'Rete in Fibra'},P('Firenze',5,290,'dome',1),
  {t:'gojail',n:'Sbirri!'},P('Viterbo',6,310,'hills'),P('Latina',6,310,'sea'),{t:'notizie',n:'Notizie'},P('Roma',6,330,'colosseo',1),
- {t:'port',n:'Trieste',p:200,full:'Porto di Trieste'},{t:'sorte',n:'Sorte'},P('Como',7,380,'lake'),{t:'tax',n:'Lusso',v:100,full:'Tassa di lusso'},P('Milano',7,420,'duomo',1)];
+ {t:'port',n:'Trieste',p:200,full:'Porto di Trieste'},{t:'sorte',n:'Sorte'},P('Courmayeur',7,380,'alps'),{t:'tax',n:'Lusso',v:100,full:'Tassa di lusso'},P('Milano',7,420,'duomo',1)];
 const r5=x=>Math.round(x/5)*5;
 SQ.forEach((s,i)=>{s.i=i;s.full=s.full||s.n;if(s.t==='prop'){const b=BASE[s.g]+(s.last?(s.g===7?14:2):0);s.r=[b,r5(b*5),r5(b*14),r5(b*36),r5(b*46),r5(b*56)]}if(s.p)s.mort=s.p/2});
 const grp=g=>SQ.filter(s=>s.t==='prop'&&s.g===g);
 
 const W='fill="rgba(255,255,255,.92)"';
 const LM={
+ arch:'<path d="M28 60V22h44v38H59V40a9 9 0 0 0-18 0v20z"/><rect x="24" y="15" width="52" height="8"/><rect x="8" y="48" width="14" height="12"/><rect x="78" y="46" width="14" height="14"/>',
+ mill:'<rect x="0" y="54" width="100" height="6" '+W+' opacity=".5"/><path d="M42 54l4-26h8l4 26z"/><g stroke="rgba(25,12,30,.7)" stroke-width="3"><path d="M50 28L36 15M50 28L64 14M50 28L64 41M50 28L36 42"/></g><g '+W+'><path d="M4 54l7-7 7 7zM20 54l6-5 6 5zM72 54l8-8 8 8z"/></g>',
+ alps:'<polygon points="0,60 20,24 34,40 54,6 74,34 86,22 100,40 100,60"/><g '+W+'><polygon points="54,6 47,18 52,16 56,20 61,17"/><polygon points="20,24 15,32 20,30 24,33"/><polygon points="86,22 82,29 87,27 90,30"/></g><rect x="40" y="48" width="8" height="12" '+W+' opacity=".6"/>',
  hills:'<path d="M0 60Q22 36 44 46T88 38L100 42V60Z"/><rect x="30" y="34" width="9" height="12"/><rect x="41" y="30" width="11" height="16"/><polygon points="41,30 46.5,23 52,30"/><rect x="55" y="33" width="8" height="12"/>',
  sassi:'<path d="M4 60V48h14v-7h12v-8h13v-7h12v7h12v8h13v8h12v11z"/><g '+W+' opacity=".5"><rect x="9" y="52" width="3" height="4"/><rect x="21" y="45" width="3" height="4"/><rect x="34" y="37" width="3" height="4"/><rect x="47" y="30" width="3" height="4"/><rect x="60" y="37" width="3" height="4"/><rect x="73" y="45" width="3" height="4"/></g>',
  baroque:'<path d="M28 60V30h44v30z"/><path d="M28 30q22-22 44 0z"/><circle cx="50" cy="20" r="3.5"/><rect x="45" y="44" width="10" height="16" '+W+' opacity=".4"/><circle cx="50" cy="35" r="4" '+W+' opacity=".4"/>',
@@ -477,7 +493,7 @@ sorte:[
  ['Volo last minute: vai a Milano. Se passi dalla Partenza ritira €200.',{move:39}],
  ['Ritorno a casa: vai alla Partenza e ritira €200.',{move:0}],
  ["Weekend d'arte: vai a Firenze. Se passi dalla Partenza ritira €200.",{move:29}],
- ['Sagra del pesce: vai a Bari. Se passi dalla Partenza ritira €200.',{move:9}],
+ ['Sagra del pesce: vai a Parabita. Se passi dalla Partenza ritira €200.',{move:9}],
  ['Carbonara improvvisata: vai a Roma. Se passi dalla Partenza ritira €200.',{move:34}],
  ['Prendi il traghetto: vai al porto più vicino. Se ha un proprietario, paghi il doppio.',{near:'port'}],
  ['Sciopero dei treni: vai al porto più vicino. Se ha un proprietario, paghi il doppio.',{near:'port'}],
@@ -647,7 +663,7 @@ const A={
  end:(w)=>{if(!mine(w)||X.phase!=='end')return false;nextTurn()},
  payjail:(w)=>{const p=cur();if(!mine(w)||!p.jail||X.phase!=='roll'||p.money<50)return false;pay(X.turn,null,50,'cauzione');p.jail=false;X.msg='Cauzione pagata, sei libero. Ora lancia i dadi.'},
  usefree:(w)=>{const p=cur();if(!mine(w)||!p.jail||!p.free.length||X.phase!=='roll')return false;const[d,k]=p.free.pop();X.decks[d].push(k);p.jail=false;log(p.name+" chiama l'avvocato ed esce");X.msg="L'avvocato ti tira fuori. Ora lancia i dadi."},
- build:(w,i)=>{if(!mine(w)||!canBuild(i))return false;const s=SQ[i];X.own[i].lv++;pay(X.turn,null,GROUPS[s.g].h,(X.own[i].lv===5?'albergo a ':'casa a ')+s.n)},
+ build:(w,i)=>{if(!mine(w)||!canBuild(i))return false;const s=SQ[i];X.own[i].lv++;ev({k:'build',i,lv:X.own[i].lv,j:X.turn});pay(X.turn,null,GROUPS[s.g].h,(X.own[i].lv===5?'albergo a ':'casa a ')+s.n)},
  sell:(w,i)=>{if(!mine(w)||!canSell(i))return false;const s=SQ[i];X.own[i].lv--;gain(X.turn,GROUPS[s.g].h/2,'vendita edificio a '+s.n)},
  mort:(w,i)=>{if(!mine(w)||!canMort(i))return false;X.own[i].m=true;gain(X.turn,SQ[i].mort,'ipoteca di '+SQ[i].full)},
  unmort:(w,i)=>{if(!mine(w)||!canUnmort(i))return false;X.own[i].m=false;pay(X.turn,null,unm(i),'riscatto di '+SQ[i].full)},
@@ -655,6 +671,7 @@ const A={
  bankrupt:(w)=>{if(!mine(w)||X.phase!=='debt')return false;bankrupt()},
  offer:(w,o)=>{if(!tradeOK())return false;const from=w==='host'?o.from:w;if(from==null||from<0||X.players[from].out||X.players[o.to].out||from===o.to)return false;
    if(!o.give.every(i=>tradable(i,from))||!o.get.every(i=>tradable(i,o.to)))return false;
+   if(o.replaces){const R=(X.offers||[]).find(x=>x.id===o.replaces);if(R&&R.to===from&&R.from===o.to){X.offers=X.offers.filter(x=>x.id!==R.id);log(`${X.players[from].name} risponde con una controproposta`);ev({k:'toast',txt:`Controproposta per ${X.players[o.to].name}!`})}}
    X.offers=(X.offers||[]).filter(x=>!(x.from===from&&x.to===o.to));X.offers.push({id:Math.random().toString(36).slice(2,8),from,to:o.to,give:o.give,get:o.get,gm:o.gm,tm:o.tm});
    log(`${X.players[from].name} manda una proposta segreta a ${X.players[o.to].name}`)},
  accept:(w,id)=>{if(!tradeOK())return false;const O=(X.offers||[]).find(x=>x.id===id);if(!O||(w!=='host'&&w!==O.to))return false;const a=O.from,b=O.to,Pa=X.players[a],Pb=X.players[b];
@@ -666,7 +683,7 @@ const A={
    const nm=L=>L.map(i=>SQ[i].n).join(', ');
    log(`Scambio ${Pa.name} ↔ ${Pb.name}: ${[nm(O.give),O.gm?eur(O.gm):''].filter(Boolean).join(' + ')||'nulla'} per ${[nm(O.get),O.tm?eur(O.tm):''].filter(Boolean).join(' + ')||'nulla'}`);
    X.offers=X.offers.filter(x=>[...x.give,...x.get].every(i=>!O.give.includes(i)&&!O.get.includes(i)))},
- reject:(w,id)=>{const O=(X.offers||[]).find(x=>x.id===id);if(!O||(w!=='host'&&w!==O.to&&w!==O.from))return false;X.offers=X.offers.filter(x=>x.id!==id);log(w===O.from?`${X.players[O.from].name} ritira una proposta`:`${X.players[O.to].name} rifiuta una proposta`)},
+ reject:(w,id)=>{const O=(X.offers||[]).find(x=>x.id===id);if(!O||(w!=='host'&&w!==O.to&&w!==O.from))return false;X.offers=X.offers.filter(x=>x.id!==id);if(w===O.from)log(`${X.players[O.from].name} ritira una proposta`);else{log(`${X.players[O.to].name} rifiuta l'offerta di ${X.players[O.from].name}`);ev({k:'nope',a:O.from,b:O.to})}},
  finish:(w)=>{if(w!=='host')return false;X.winner={by:'count'}},
  resumeplay:(w)=>{if(w!=='host')return false;X.winner=null}};
 
@@ -718,9 +735,9 @@ async function savePhoto(code,file){
 async function removePhoto(code){try{if(MODE==='sb'){await SB.from('photos').delete().eq('game_id',ROOM).eq('code',code);delete PHOTOS[code]}else if(MODE==='server')await api('api/photo',{code,img:null});else{delete PHOTOS[code];saveLocal()}}catch(e){}render()}
 
 /* ---------- arrivo nuovi stati e animazioni ---------- */
-const DUR={dice:2700,pay:1500,card:3300,jail:4400,toast:1300,turn:400,strip:4800,sweat:1700,dead:5600,trade:4800};
+const DUR={dice:2700,pay:1500,card:3300,jail:4400,toast:1300,turn:400,strip:5200,sweat:1700,dead:5600,trade:4800,nope:2700,build:2000};
 const stepMs=e=>e.path.length>15?130:420;
-function evDur(e){return e.k==='move'?e.path.length*stepMs(e)+(isPhone()?350:3400):(DUR[e.k]||0)}
+function evDur(e){return e.k==='move'?e.path.length*stepMs(e)+(isPhone()?350:800):(DUR[e.k]||0)}
 function onGame(g){
  const old=G;G=g?clone(g):null;
  if(!G){render();return}
@@ -746,10 +763,11 @@ let hopJ=-1,hotCell=-1,diceRolling=false;
 async function play(e){
  const phone=isPhone(),pl=j=>G.players[j]||null;
  if(e.k==='dice'){diceRolling=true;if(phone){toast(`🎲 ${pl(e.j)?.name||''}: ${e.d[0]} + ${e.d[1]}`);await sleep(1500)}else await diceFx(e);diceRolling=false;if(vis)vis.dice=e.d;render();return}
- if(e.k==='move'){const ms=stepMs(e),use3d=!phone&&!REDUCED&&OPT3D;
-  if(use3d){cam(vis?vis.pos[e.j]:e.path[0],900);await sleep(950)}
-  for(const p of e.path){if(vis)vis.pos[e.j]=p;hopJ=e.j;hotCell=p;render();if(use3d)cam(p,ms);await sleep(ms)}
-  hopJ=-1;render();await sleep(use3d?1500:250);hotCell=-1;if(use3d){cam(null,900);await sleep(900)}render();return}
+ if(e.k==='move'){const ms=stepMs(e);
+  if(phone){if(vis)vis.pos[e.j]=e.path[e.path.length-1];render();await sleep(300);return}
+  await glide(e,ms);return}
+ if(e.k==='build'){await buildFx(e,phone);return}
+ if(e.k==='nope'){await nopeFx(e,phone);return}
  if(e.k==='pay'){if(vis){if(e.a!=null)vis.money[e.a]-=e.amt;if(e.b!=null)vis.money[e.b]+=e.amt}if(!phone)await moneyFx(e);else await sleep(300);render();return}
  if(e.k==='sweat'){if(!phone)await sweatFx(e);return}
  if(e.k==='card'){if(phone){await sleep(800);return}await cardFx(e);return}
@@ -767,6 +785,34 @@ function cam(i,ms){const b=$('#board');if(!b)return;b.style.transition=`transfor
  if(i==null){b.classList.remove('cam');b.style.transform='';return}
  const[fx,fy]=cellFrac(i);b.classList.add('cam');b.style.transformOrigin=`${(fx*100).toFixed(2)}% ${(fy*100).toFixed(2)}%`;
  b.style.transform=`translate(${(50-fx*100).toFixed(2)}%,${(56-fy*100).toFixed(2)}%) rotateX(40deg) scale(2.2)`}
+async function glide(e,ms){
+ const tokEl=document.querySelector(`[data-tok="${e.j}"]`);const r0=tokEl?tokEl.getBoundingClientRect():null;
+ if(!r0||!r0.width){for(const p of e.path){if(vis)vis.pos[e.j]=p;hotCell=p;render();await sleep(ms)}hotCell=-1;render();return}
+ const size=Math.max(r0.width,r0.height);const wrap=document.createElement('div');wrap.innerHTML=avatar(G.players[e.j],'me');const g=wrap.firstChild;
+ g.style.cssText=`position:fixed;left:${r0.left}px;top:${r0.top}px;width:${size}px;height:${size}px;z-index:85;border-width:${Math.max(3,size*.09)}px`;
+ $('#fx').appendChild(g);if(vis)vis.pos[e.j]=-1;render();
+ let cx=r0.left,cy=r0.top;
+ for(const p of e.path){const cell=document.querySelector(`.cell[data-arg="${p}"]`);if(!cell)continue;const c=cell.getBoundingClientRect();
+  const nx=c.left+c.width/2-size/2,ny=c.top+c.height/2-size/2,dx=nx-cx,dy=ny-cy;
+  try{await g.animate([{transform:'translate(0,0) scale(1)'},{transform:`translate(${dx*.5}px,${dy*.5-size*.55}px) scale(1.12)`,offset:.5},{transform:`translate(${dx}px,${dy}px) scale(1)`}],{duration:ms,easing:'cubic-bezier(.45,.05,.55,.95)'}).finished}catch(err){}
+  g.style.left=nx+'px';g.style.top=ny+'px';cx=nx;cy=ny;hotCell=p;render()}
+ try{await g.animate([{transform:'scale(1.18,.82)'},{transform:'scale(.95,1.05)'},{transform:'scale(1)'}],{duration:260,easing:'ease-out'}).finished}catch(err){}
+ if(vis)vis.pos[e.j]=e.path[e.path.length-1];g.remove();render();await sleep(500);hotCell=-1;render()}
+async function buildFx(e,phone){const s=SQ[e.i],what=e.lv===5?'un albergo':'una casa';
+ if(phone){toast(`${e.lv===5?'🏨':'🏠'} ${what} a ${s.n}!`);await sleep(900);return}
+ const cell=document.querySelector(`.cell[data-arg="${e.i}"]`);if(!cell){await sleep(500);return}const c=cell.getBoundingClientRect();
+ const h=document.createElement('div');h.className='bigbuild';h.innerHTML=e.lv===5?HOTEL:HOUSE;const W0=Math.max(70,c.width*1.1);
+ h.style.cssText=`left:${c.left+c.width/2-W0/2}px;top:${c.top+c.height/2-W0/2}px;width:${W0}px;height:${W0}px`;$('#fx').appendChild(h);
+ const lbl=document.createElement('div');lbl.className='toast';lbl.textContent=`${G.players[e.j]?.name||''} costruisce ${what} a ${s.full}!`;$('#fx').appendChild(lbl);
+ try{await h.animate([{transform:'translateY(-60vh) rotate(-12deg) scale(1.4)',opacity:0},{transform:'translateY(0) rotate(0) scale(1)',opacity:1,offset:.6},{transform:'translateY(-4vh) scale(1.05,.95)',offset:.75},{transform:'translateY(0) scale(1)'}],{duration:1100,easing:'cubic-bezier(.5,0,.75,0)'}).finished}catch(err){}
+ for(let k=0;k<8;k++){const d=document.createElement('div');d.className='puff';d.style.left=(c.left+c.width/2)+'px';d.style.top=(c.top+c.height/2+W0*.35)+'px';$('#fx').appendChild(d);
+  const a=k/8*Math.PI*2;d.animate([{transform:'translate(-50%,-50%) scale(.3)',opacity:.9},{transform:`translate(calc(-50% + ${Math.cos(a)*W0}px),calc(-50% + ${Math.sin(a)*W0*.4}px)) scale(1.4)`,opacity:0}],{duration:700,easing:'ease-out'}).onfinish=()=>d.remove()}
+ await sleep(800);h.animate([{opacity:1},{opacity:0,transform:'scale(.4)'}],{duration:300}).onfinish=()=>h.remove();setTimeout(()=>lbl.remove(),400);await sleep(300)}
+async function nopeFx(e,phone){const A_=G.players[e.a],B=G.players[e.b];
+ if(phone){toast(`👎 ${B?.name||''} ha rifiutato l'offerta di ${A_?.name||''}`);await sleep(1400);return}
+ const o=document.createElement('div');o.className='fxov';
+ o.innerHTML=`<div class="nope"><div class="hs-row">${avatar(A_,'l')}<div class="thumb">👎</div>${avatar(B,'r')}</div><div class="nopestamp">OFFERTA RIFIUTATA</div><div class="nopesub">${esc(B?.name||'')} ha detto di no a ${esc(A_?.name||'')}</div></div>`;
+ $('#fx').appendChild(o);await sleep(2600);o.remove()}
 function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;$('#fx').appendChild(d);setTimeout(()=>d.remove(),1800)}
 const FROT={1:[0,0],6:[0,180],2:[0,-90],5:[0,90],3:[-90,0],4:[90,0]};
 const cubeHTML=()=>`<div class="dwrap"><div class="cube"><div class="core"></div><div class="core c1"></div><div class="core c2"></div>${[1,2,3,4,5,6].map(n=>`<div class="face f${n}">${pips(n)}</div>`).join('')}</div></div>`;
@@ -823,8 +869,8 @@ const DANCER=`<svg class="stage" viewBox="0 0 200 300" aria-hidden="true">
   <path d="M95 108 q5 4 10 0" stroke="#c0395b" stroke-width="2" fill="none" stroke-linecap="round"/>
  </g></svg>`;
 async function stripFx(e){const p=G.players[e.j];const o=document.createElement('div');o.className='club';
- o.innerHTML=`<div class="spot"></div><div class="neon">STRIP CLUB</div>${DANCER}<div class="notes">${[...Array(8).keys()].map(k=>`<b style="left:${8+k*11}%;animation-delay:${(k*.37).toFixed(2)}s">${k%2?'♪':'♥'}</b>`).join('')}</div><div class="clubsub">${esc(p?p.name:'')} si gode lo spettacolo</div>`;
- $('#fx').appendChild(o);await sleep(4600);o.remove()}
+ o.innerHTML=`<div class="spot"></div><div class="neon">STRIP CLUB</div><img class="dancer-img" src="stripclub.jpg" alt=""><div class="notes">${[...Array(8).keys()].map(k=>`<b style="left:${8+k*11}%;animation-delay:${(k*.37).toFixed(2)}s">${k%2?'♪':'♥'}</b>`).join('')}</div><div class="clubsub">${esc(p?p.name:'')} si gode lo spettacolo</div>`;
+ $('#fx').appendChild(o);await sleep(5000);o.remove()}
 async function deadFx(e,phone){const v=G.players[e.j],k=e.by!=null?G.players[e.by]:null;const o=document.createElement('div');o.className='duel';
  const shooter=k?avatar(k):`<div class="av" style="--pc:#ffc23d">${BANKICO}</div>`;
  o.innerHTML=`<div class="bang">BANG!</div><div class="row"><div class="shooter">${shooter}${GUN}${GUN.replace('class="gun"','class="gun g2"')}<div class="flash">💥</div></div><div class="victim">${avatar(v)}<div class="xeyes">✖ ✖</div></div></div><div class="rip">R.I.P.<br><small style="font-size:3vmin">${esc(v?v.name:'')}</small></div><div class="duelsub">${esc(k?k.name:'La banca')} ha eliminato ${esc(v?v.name:'')}</div>`;
@@ -832,13 +878,7 @@ async function deadFx(e,phone){const v=G.players[e.j],k=e.by!=null?G.players[e.b
 async function tradeFx(e,phone){const A_=G.players[e.a],B=G.players[e.b];const nm=(L,m)=>[...L.map(i=>esc(SQ[i].full)),m?eur(m):''].filter(Boolean).join('<br>')||'nulla';
  if(phone){toast('Scambio concluso!');await sleep(1200);return}
  const o=document.createElement('div');o.className='fxov';
- o.innerHTML=`<div class="tradefx"><h2>Affare fatto!</h2><div class="hs-row">${avatar(A_,'l')}<svg class="arms" viewBox="0 0 400 220" aria-hidden="true"><g class="grow"><g class="shakeg">
- <path d="M-10 110 C70 104 120 128 182 118" stroke="${A_.color}" stroke-width="40" fill="none" stroke-linecap="round"/>
- <path d="M410 110 C330 104 280 128 218 118" stroke="${B.color}" stroke-width="40" fill="none" stroke-linecap="round"/>
- <path d="M-10 110 C70 104 120 128 182 118" stroke="rgba(0,0,0,.18)" stroke-width="6" fill="none" transform="translate(0,14)"/>
- <ellipse cx="200" cy="118" rx="40" ry="30" fill="#f2c8a4" stroke="#b98b66" stroke-width="5"/>
- <path d="M176 104q24-12 48 0M172 118q28-10 56 0M176 132q24-10 48 0" stroke="#b98b66" stroke-width="5" fill="none" stroke-linecap="round"/>
- <path d="M212 92q10-14 22-6" stroke="#b98b66" stroke-width="7" fill="#f2c8a4" stroke-linecap="round"/></g></g></svg>${avatar(B,'r')}</div><div class="what"><div><b>${esc(A_.name)} dà</b><br>${nm(e.give,e.gm)}</div><div><b>${esc(B.name)} dà</b><br>${nm(e.get,e.tm)}</div></div></div>`;
+ o.innerHTML=`<div class="tradefx"><h2>Affare fatto!</h2><div class="hs-row">${avatar(A_,'l')}<img class="hs-img" src="stretta.jpg" alt="">${avatar(B,'r')}</div><div class="what"><div><b>${esc(A_.name)} dà</b><br>${nm(e.give,e.gm)}</div><div><b>${esc(B.name)} dà</b><br>${nm(e.get,e.tm)}</div></div></div>`;
  $('#fx').appendChild(o);await sleep(4600);o.remove()}
 
 /* ---------- disegno ---------- */
@@ -907,7 +947,7 @@ const listTxt=(L,m)=>[...L.map(i=>esc(SQ[i].full)),m?eur(m):''].filter(Boolean).
 function offerDetail(O,who,c){const A_=G.players[O.from],B=G.players[O.to],dis=busyNow()||pending||G.phase==='auction';
  const canAns=who==='host'||who===O.to,isFrom=who===O.from;
  return `<div class="offer"><div>${who===O.to?'<b>'+esc(A_.name)+'</b> ti propone':isFrom?'Hai proposto a <b>'+esc(B.name)+'</b>':'<b>'+esc(A_.name)+'</b> propone a <b>'+esc(B.name)+'</b>'}: ${isFrom?'dai':'dà'} ${listTxt(O.give,O.gm)} e ${isFrom?'chiedi':'chiede'} ${listTxt(O.get,O.tm)}.</div>
-  <div class="acts">${canAns?`<button class="${c} pri" data-act="accept" data-arg="${O.id}" ${dis?'disabled':''}>${who==='host'?'Accetta per '+esc(B.name):'Accetto'}</button>`:''}${canAns||isFrom?`<button class="${c} bad" data-act="reject" data-arg="${O.id}" ${dis?'disabled':''}>${isFrom&&who!=='host'?'Ritira':'Rifiuta'}</button>`:''}</div></div>`}
+  <div class="acts">${canAns?`<button class="${c} pri" data-act="accept" data-arg="${O.id}" ${dis?'disabled':''}>${who==='host'?'Accetta per '+esc(B.name):'Accetto'}</button><button class="${c}" data-act="counter" data-arg="${O.id}" ${dis?'disabled':''}>Controproposta</button>`:''}${canAns||isFrom?`<button class="${c} bad" data-act="reject" data-arg="${O.id}" ${dis?'disabled':''}>${isFrom&&who!=='host'?'Ritira':'Rifiuta'}</button>`:''}</div></div>`}
 
 function centerHTML(){
  const busy=busyNow();
@@ -944,7 +984,7 @@ function sideHTML(){
    ${j!==G.turn&&!p.out&&ph?`<div><button class="btn" data-act="trade" data-arg="${j}">Scambio con ${esc(p.name)}</button></div>`:''}
   </div>`}).join('')}
  <div class="bankc"><div class="bico" id="bank">${BANKICO}</div><div><div class="pn">Banca</div><div class="pw">Incassa tasse, acquisti e cauzioni. Paga la Partenza e le carte.</div></div></div>
- <div class="sbar"><button class="btn" data-act="fs">Schermo intero</button><button class="btn" data-act="toggle3d" aria-pressed="${OPT3D}">Tabellone 3D: ${OPT3D?'acceso':'spento'}</button><button class="btn" data-act="rules">Regole</button>
+ <div class="sbar"><button class="btn" data-act="fs">Schermo intero</button><button class="btn" data-act="rules">Regole</button>
   <button class="btn" data-act="finish">${UI.confirm==='finish'?'Confermi? Clicca ancora':'Termina e conta'}</button>
   <button class="btn bad" data-act="newgame">${UI.confirm==='newgame'?'Sicuro? Clicca ancora':'Nuova partita'}</button></div>`}
 
@@ -974,6 +1014,7 @@ function rulesHTML(){return `<div class="ov"><div class="modal"><h2>Come si gioc
  <li>Gli scambi sono segreti: si propongono dal telefono e compaiono sulla TV solo quando l'altro accetta. Se siete in rosso, vendere una città a un amico può rendere più dell'ipoteca.</li>
  <li>"Annulla" torna indietro di una mossa (fino a 10).</li>
  <li>Partita lampo: due città a testa all'inizio e ${LAMPO_ROUNDS} giri. Vince il patrimonio più alto.</li>
+ <li><b>Patrimonio</b> = soldi in mano + prezzo d'acquisto di ogni proprietà (metà se ipotecata) + quanto hai speso in case e alberghi.</li>
  </ol><div class="acts"><button class="btn pri" data-act="closemodal">Ho capito</button></div></div></div>`}
 function winnerHTML(who){const rank=G.players.map((p,j)=>({p,j,w:p.out?-1:worth(G,j)})).sort((a,b)=>b.w-a.w);
  return `<div class="ov"><div class="modal"><h2>${esc(rank[0].p.name)} vince ${GAME}🧃</h2>${G.winner.by==='lampo'?'<p class="rules">Fine dei giri della partita lampo: vince il patrimonio più alto.</p>':''}
@@ -983,7 +1024,7 @@ function winnerHTML(who){const rank=G.players.map((p,j)=>({p,j,w:p.out?-1:worth(
 function lastRoomBtn(){if(MODE!=='sb'||ROOM)return '';let r=null;try{r=localStorage.getItem('smarm-room')}catch(e){}return r&&/^[a-z0-9]{4,12}$/.test(r)?`<button class="btn" data-act="resumeroom" data-arg="${r}">Riprendi l'ultima partita</button>`:''}
 function setupHTML(){
  const head=`<h1 class="herot">SMARMELLO<span>POLY🧃</span></h1>`;
- if(!G)return `<div class="herobg"></div><div class="setup hero first">${head}<p>Compra città da Potenza a Milano, costruisci case e alberghi e manda in rosso gli amici. Il tabellone va sulla TV, ognuno gioca dal proprio telefono.</p>
+ if(!G)return `<div class="herobg"></div><div class="setup hero first">${head}<p>Compra città da Aosta a Trapani, costruisci case e alberghi e manda in rosso gli amici. Il tabellone va sulla TV, ognuno gioca dal proprio telefono.</p>
   <div class="acts"><button class="btn pri" data-act="create">Crea una partita</button>${lastRoomBtn()}<button class="btn" data-act="rules">Regole</button></div>${UI.err?`<p class="banner">${esc(UI.err)}</p>`:''}</div>`;
  const dis=pending?'disabled':'';
  return `<div class="herobg"></div><div class="setup hero">${head}<p>Scrivi i nomi, scegli colore e pedina o carica una foto: diventa la pedina sul tabellone. Ognuno può farlo anche dal telefono con "Collega i telefoni".</p>
@@ -1079,12 +1120,13 @@ async function act(a,arg){
   case 'bankrupt':if(UI.confirm==='bankrupt'){UI.confirm=null;return doAct(w,'bankrupt')}UI.confirm='bankrupt';return render();
   case 'undo':return undo(w);
   case 'trade':UI.draft={from:w==='host'?G.turn:w,to:+arg,give:[],get:[],gm:0,tm:0};return render();
+  case 'counter':{const O=(G.offers||[]).find(x=>x.id===arg);if(!O)return;UI.reveal=null;UI.draft={from:O.to,to:O.from,give:O.get.slice(),get:O.give.slice(),gm:O.tm||0,tm:O.gm||0,replaces:O.id};return render()}
   case 'tg':{const[side,i]=arg.split(':');const L=UI.draft[side],n=+i,k=L.indexOf(n);k<0?L.push(n):L.splice(k,1);return render()}
   case 'tcancel':UI.draft=null;return render();
   case 'tsend':{const T=UI.draft,p=G.players[T.from],q=G.players[T.to];const gm=Math.max(0,Math.floor(+T.gm||0)),tm=Math.max(0,Math.floor(+T.tm||0));
    if(gm>Math.max(0,p.money)||tm>Math.max(0,q.money)){T.err='Qualcuno offre più soldi di quelli che ha.';return render()}
    if(!T.give.length&&!T.get.length&&!gm&&!tm){T.err='La proposta è vuota.';return render()}
-   const o={from:T.from,to:T.to,give:T.give.slice(),get:T.get.slice(),gm,tm};UI.draft=null;return doAct(w,'offer',o)}
+   const o={from:T.from,to:T.to,give:T.give.slice(),get:T.get.slice(),gm,tm,replaces:T.replaces||null};UI.draft=null;return doAct(w,'offer',o)}
   case 'finish':if(UI.confirm==='finish'){UI.confirm=null;return doAct('host','finish')}UI.confirm='finish';return render();
   case 'resumeplay':return doAct('host','resumeplay');
   case 'newgame':if(UI.confirm!=='newgame'){UI.confirm='newgame';return render()}UI.confirm=null;// prosegue
