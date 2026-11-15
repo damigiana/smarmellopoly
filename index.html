@@ -43,6 +43,8 @@ img{max-width:100%}
 
 /* ---------- TV ---------- */
 .tv{display:flex;gap:1.1rem;height:100%;align-items:stretch;justify-content:center}
+body.tvmode{height:100vh;height:100dvh;overflow:hidden}
+.side{scrollbar-gutter:stable}
 .board{width:min(calc(100vh - 24px),calc(100vw - 24px - 22rem));max-width:100%;aspect-ratio:1;flex:none;container-type:inline-size;align-self:center;
   display:grid;grid-template-columns:1.4fr repeat(9,1fr) 1.4fr;grid-template-rows:1.4fr repeat(9,1fr) 1.4fr;
   gap:.28cqw;background:var(--frame);padding:.5cqw;border-radius:1.4cqw;box-shadow:0 0 0 .3cqw #2c5a60,0 2cqw 6cqw rgba(0,0,0,.6)}
@@ -124,7 +126,7 @@ img{max-width:100%}
 .waiting{font-size:2cqw;color:var(--muted)}
 .mid{display:flex;gap:1.6cqw;align-items:flex-start;flex-wrap:wrap}
 .mid>*{flex:1 1 20cqw;min-width:0}
-.mid:empty{display:none}
+
 .card{background:var(--cell);color:var(--ink);border-radius:.9cqw;padding:1.2cqw 1.8cqw;border-top:1.1cqw solid var(--accent);font-size:1.8cqw;line-height:1.3}
 .card b{display:block;font-family:var(--display);font-size:1.25cqw;text-transform:uppercase;letter-spacing:.15cqw;color:#6b5418}
 .card.notizie{border-top-color:#3fb6a5}.card.notizie b{color:#1d5f55}
@@ -136,7 +138,10 @@ img{max-width:100%}
 .btn.sm{font-size:1.4cqw;padding:.6cqw 1.2cqw}
 .btn:disabled{opacity:.35;cursor:not-allowed}
 .hint{font-size:1.3cqw;color:var(--muted)}
-.hist{margin-top:auto;border-top:1px solid #2c5a60;padding-top:.8cqw;display:flex;flex-direction:column;gap:.3cqw;font-size:1.4cqw;color:var(--muted)}
+.hist{flex:none;height:5cqw;overflow:hidden;border-top:1px solid #2c5a60;padding-top:.8cqw;display:flex;flex-direction:column;gap:.3cqw;font-size:1.4cqw;color:var(--muted)}
+.slot-msg{flex:none;min-height:6.4cqw;display:flex;align-items:flex-start}
+.slot-acts{flex:none;min-height:5.6cqw;display:flex;flex-direction:column;gap:.8cqw;justify-content:flex-start}
+.center .mid{flex:1 1 auto;min-height:0;overflow:auto;align-content:flex-start}
 .hist div:first-child{color:var(--fg)}
 .pill{display:inline-block;background:rgba(0,0,0,.3);border-radius:99px;padding:.3cqw 1cqw;font-size:1.3cqw;font-weight:700;color:var(--accent)}
 .offer{background:rgba(0,0,0,.25);border:.2cqw solid var(--accent);border-radius:.8cqw;padding:1cqw 1.3cqw;display:flex;flex-direction:column;gap:.7cqw}
@@ -214,6 +219,16 @@ img{max-width:100%}
 .setup{max-width:56rem;margin:0 auto;display:flex;flex-direction:column;gap:1rem;padding-block:2vh}
 .setup h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(2.4rem,7vw,5.5rem);color:var(--accent);line-height:.95;overflow-wrap:anywhere}
 .setup p{margin:0;color:var(--muted);font-size:1.15rem;max-width:60ch}
+.herobg{position:fixed;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(11,20,22,.35) 0%,rgba(11,20,22,.78) 50%,rgba(11,20,22,.97) 100%),url(sfondo.jpg) center 22%/cover no-repeat}
+.setup.hero{text-align:center}
+.setup.hero p{margin:0 auto;color:#dbe7e2;font-size:1.25rem;text-shadow:0 .1rem .4rem rgba(0,0,0,.8)}
+.setup.hero .acts,.setup.hero .mode{justify-content:center}
+.setup.first{min-height:calc(100vh - 24px);justify-content:center;gap:1.6rem}
+.herot{margin:0;font-family:var(--display);font-weight:900;font-size:clamp(3rem,11vw,9rem);line-height:.82;letter-spacing:-.02em;color:var(--accent);text-shadow:0 .06em 0 #7a4d00,0 .15em .5em rgba(0,0,0,.65)}
+.herot span{display:block;color:#fff;text-shadow:0 .06em 0 #6b6b6b,0 .15em .5em rgba(0,0,0,.65)}
+.setup.first .btn.pri{font-size:1.5rem;padding:1rem 2.6rem;border-radius:99px;box-shadow:0 .6rem 1.6rem rgba(255,194,61,.35)}
+.setup.first .btn:not(.pri){border-radius:99px;background:rgba(42,87,93,.85)}
+.setup.hero .prow,.setup.hero .mode button{background:rgba(20,52,58,.86);backdrop-filter:blur(6px);text-align:left}
 .prow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.6rem 1rem;align-items:center;background:var(--felt);padding:.9rem;border-radius:1rem}
 .prow .av{width:4.5rem;height:4.5rem;grid-row:span 2}
 .prow .tin{font-size:1.2rem;width:100%}
@@ -263,12 +278,15 @@ img{max-width:100%}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:80}
 .fxov{position:fixed;inset:0;display:grid;place-items:center;background:rgba(3,8,9,.72);animation:fadein .25s}
 @keyframes fadein{from{opacity:0}}
-.scene3d{display:flex;gap:10vmin;perspective:1200px}
+.scene3d{display:flex;gap:12vmin;perspective:1400px}
+.dwrap{position:relative}
+.dwrap::after{content:"";position:absolute;left:8%;right:8%;bottom:-7vmin;height:5vmin;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%);filter:blur(.6vmin)}
 .cube{width:24vmin;height:24vmin;position:relative;transform-style:preserve-3d}
-.face{position:absolute;inset:0;background:#fffdf7;border-radius:3vmin;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:3vmin;
-  box-shadow:inset 0 0 2.5vmin rgba(0,0,0,.18);border:.4vmin solid #e2ddcd}
-.face i{display:block;width:4.2vmin;height:4.2vmin;border-radius:50%;margin:auto}
-.face i.on{background:#1b1b1b}
+.face{position:absolute;inset:0;background:radial-gradient(circle at 32% 28%,#ffffff,#f3eee2 62%,#ddd4bf);border-radius:2.2vmin;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:3.4vmin;
+  box-shadow:inset 0 0 0 .3vmin rgba(255,255,255,.7),inset -.9vmin -.9vmin 2.2vmin rgba(80,60,20,.18);backface-visibility:hidden}
+.core{position:absolute;inset:.6vmin;background:#e7dfcb;border-radius:1vmin}.core.c1{transform:rotateX(90deg)}.core.c2{transform:rotateY(90deg)}
+.face i{display:block;width:4.4vmin;height:4.4vmin;border-radius:50%;margin:auto}
+.face i.on{background:radial-gradient(circle at 40% 35%,#555,#151515 65%);box-shadow:inset 0 .35vmin .5vmin rgba(0,0,0,.7),0 .15vmin 0 rgba(255,255,255,.8)}
 .f1{transform:translateZ(12vmin)}.f6{transform:rotateY(180deg) translateZ(12vmin)}
 .f2{transform:rotateY(90deg) translateZ(12vmin)}.f5{transform:rotateY(-90deg) translateZ(12vmin)}
 .f3{transform:rotateX(90deg) translateZ(12vmin)}.f4{transform:rotateX(-90deg) translateZ(12vmin)}
@@ -751,7 +769,7 @@ function cam(i,ms){const b=$('#board');if(!b)return;b.style.transition=`transfor
  b.style.transform=`translate(${(50-fx*100).toFixed(2)}%,${(56-fy*100).toFixed(2)}%) rotateX(40deg) scale(2.2)`}
 function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;$('#fx').appendChild(d);setTimeout(()=>d.remove(),1800)}
 const FROT={1:[0,0],6:[0,180],2:[0,-90],5:[0,90],3:[-90,0],4:[90,0]};
-const cubeHTML=()=>`<div class="cube">${[1,2,3,4,5,6].map(n=>`<div class="face f${n}">${pips(n)}</div>`).join('')}</div>`;
+const cubeHTML=()=>`<div class="dwrap"><div class="cube"><div class="core"></div><div class="core c1"></div><div class="core c2"></div>${[1,2,3,4,5,6].map(n=>`<div class="face f${n}">${pips(n)}</div>`).join('')}</div></div>`;
 async function diceFx(e){
  const o=document.createElement('div');o.className='fxov';
  o.innerHTML=`<div class="scene3d">${cubeHTML()}${cubeHTML()}</div>`;$('#fx').appendChild(o);
@@ -894,24 +912,25 @@ function offerDetail(O,who,c){const A_=G.players[O.from],B=G.players[O.to],dis=b
 function centerHTML(){
  const busy=busyNow();
  const hist=`<div class="hist">${(busy?[]:G.log.slice(0,2)).map(l=>`<div>${esc(l)}</div>`).join('')}</div>`;
- if(G.phase==='order'){const R=G.order.rolls;return `<div class="center"><div class="logo" aria-hidden="true">SMARMELLO<br>POLY🧃</div><div class="sub">Chi comincia? Tirate i dadi, parte il più alto</div>
+ const err=UI.err?`<div style="color:var(--danger);font-size:1.4cqw;flex:none">${esc(UI.err)}</div>`:'';
+ const logo='<div class="logo" aria-hidden="true">SMARMELLO<br>POLY🧃</div>';
+ if(G.phase==='order'){const R=G.order.rolls;return `<div class="center">${logo}<div class="sub">Chi comincia? Tirate i dadi, parte il più alto</div>
   <div class="olist">${G.players.map((p,j)=>`<div class="o">${avatar(p)}<b>${esc(p.name)}</b><span class="pill">${R[j]!=null&&!(busy&&j===G.order.k-1)?R[j]:'…'}</span></div>`).join('')}</div>
-  <div class="msg">${busy?'':esc(G.msg)}</div>${busy?'<div class="waiting">I dadi stanno rotolando…</div>':turnActions('host','btn sm','btn pri')}${hist}</div>`}
+  <div class="slot-msg msg">${busy?'<span class="waiting">I dadi stanno rotolando…</span>':esc(G.msg)}</div>
+  <div class="mid"></div>
+  <div class="slot-acts">${busy?'':turnActions('host','btn sm','btn pri')}</div>${err}${hist}</div>`}
  const p=G.players[G.turn],sel=!busy?(G.phase==='buy'?p.pos:UI.sel):null,dd=diceShown();
  const offers=(G.offers||[]);
  const offersBox=offers.length?`<div class="offer"><div>🤫 Trattative segrete in corso: ${offers.map(o=>`<b>${esc(G.players[o.from].name)}</b> → <b>${esc(G.players[o.to].name)}</b>`).join(', ')}</div>
    ${UI.reveal&&offers.some(o=>o.id===UI.reveal)?offers.filter(o=>o.id===UI.reveal).map(o=>offerDetail(o,'host','btn sm')).join(''):`<div class="acts">${offers.map(o=>`<button class="btn sm" data-act="reveal" data-arg="${o.id}">Gestisci per ${esc(G.players[o.to].name)}</button>`).join('')}</div>`}</div>`:'';
- return `<div class="center">
-  <div class="logo" aria-hidden="true">SMARMELLO<br>POLY🧃</div>
+ const mid=busy?'':`${G.card?`<div class="card ${G.card.deck}"><b>${G.card.deck==='sorte'?'Sorte':'Notizie'}</b>${esc(G.card.txt)}</div>`:''}${sel!=null?`<div>${deedHTML(sel,'host')}${G.phase!=='buy'?'<div class="acts" style="margin-top:.6cqw"><button class="btn sm" data-act="unsel">Chiudi</button></div>':''}</div>`:''}${offersBox}`;
+ return `<div class="center">${logo}
   <div class="hd">${avatar(p)}<div><div class="who" style="color:${p.color}">${esc(p.name)}</div><div class="cash ${moneyOf(G.turn)<0?'neg':''}">${eur(moneyOf(G.turn))}${p.jail&&!busy?' · in carcere':''}</div>${G.lampo?`<span class="pill">Giro ${Math.min(G.round||1,LAMPO_ROUNDS)} di ${LAMPO_ROUNDS}</span>`:''}</div>
    <div class="dice">${diceRolling||(busy&&queue.some(e=>e.k==='dice'))?'<div class="die q">?</div><div class="die q">?</div>':die(dd[0])+die(dd[1])}</div></div>
-  ${busy?'<div class="waiting">Guarda la pedina…</div>':`
-  <div class="msg">${esc(G.msg)}</div>
-  <div class="mid">${G.card?`<div class="card ${G.card.deck}"><b>${G.card.deck==='sorte'?'Sorte':'Notizie'}</b>${esc(G.card.txt)}</div>`:''}${sel!=null?`<div>${deedHTML(sel,'host')}${G.phase!=='buy'?'<div class="acts" style="margin-top:.6cqw"><button class="btn sm" data-act="unsel">Chiudi</button></div>':''}</div>`:''}</div>
-  ${turnActions('host','btn sm','btn pri')}
-  ${offersBox}`}
-  ${UI.err?`<div style="color:var(--danger);font-size:1.4cqw">${esc(UI.err)}</div>`:''}
-  ${hist}</div>`}
+  <div class="slot-msg msg">${busy?'<span class="waiting">Guarda la pedina…</span>':esc(G.msg)}</div>
+  <div class="mid">${mid}</div>
+  <div class="slot-acts">${busy?'':turnActions('host','btn sm','btn pri')}</div>
+  ${err}${hist}</div>`}
 
 function sideHTML(){
  const ph=!busyNow()&&!G.winner&&G.phase!=='auction'&&G.phase!=='order';
@@ -963,11 +982,11 @@ function winnerHTML(who){const rank=G.players.map((p,j)=>({p,j,w:p.out?-1:worth(
 
 function lastRoomBtn(){if(MODE!=='sb'||ROOM)return '';let r=null;try{r=localStorage.getItem('smarm-room')}catch(e){}return r&&/^[a-z0-9]{4,12}$/.test(r)?`<button class="btn" data-act="resumeroom" data-arg="${r}">Riprendi l'ultima partita</button>`:''}
 function setupHTML(){
- const head=`<h1>${GAME}🧃</h1>`;
- if(!G)return `<div class="setup">${head}<p>Compra città da Potenza a Milano, costruisci case e alberghi e manda in rosso gli amici. Il tabellone va sulla TV, ognuno gioca dal proprio telefono.</p>
+ const head=`<h1 class="herot">SMARMELLO<span>POLY🧃</span></h1>`;
+ if(!G)return `<div class="herobg"></div><div class="setup hero first">${head}<p>Compra città da Potenza a Milano, costruisci case e alberghi e manda in rosso gli amici. Il tabellone va sulla TV, ognuno gioca dal proprio telefono.</p>
   <div class="acts"><button class="btn pri" data-act="create">Crea una partita</button>${lastRoomBtn()}<button class="btn" data-act="rules">Regole</button></div>${UI.err?`<p class="banner">${esc(UI.err)}</p>`:''}</div>`;
  const dis=pending?'disabled':'';
- return `<div class="setup">${head}<p>Scrivi i nomi, scegli colore e pedina o carica una foto: diventa la pedina sul tabellone. Ognuno può farlo anche dal telefono con "Collega i telefoni".</p>
+ return `<div class="herobg"></div><div class="setup hero">${head}<p>Scrivi i nomi, scegli colore e pedina o carica una foto: diventa la pedina sul tabellone. Ognuno può farlo anche dal telefono con "Collega i telefoni".</p>
  <div class="mode"><button class="${!G.lampo?'on':''}" data-act="lampo" data-arg="0"><b>Partita classica</b><span>Si gioca fino all'ultimo superstite.</span></button><button class="${G.lampo?'on':''}" data-act="lampo" data-arg="1"><b>Partita lampo ⚡</b><span>Due città a testa all'inizio, ${LAMPO_ROUNDS} giri, vince il più ricco.</span></button></div>
  ${G.players.map((p,k)=>`<div class="prow">${avatar(p)}
   <input class="tin" id="p-name-${k}" data-k="${k}" placeholder="Giocatore ${k+1}" maxlength="16" autocomplete="off" value="${esc(p.name)}">
@@ -1017,9 +1036,11 @@ function typing(){if(ptrDown)return true;const a=document.activeElement;return !
 function render(){
  if(typing()){deferRender=true;return}deferRender=false;
  const app=$('#app');
+ document.body.classList.remove('tvmode');
  if(isPhone()){const op=[...document.querySelectorAll('details[open]')].map(d=>d.querySelector('summary')?.textContent);const y=window.scrollY;app.innerHTML=phoneHTML();
   document.querySelectorAll('details').forEach(d=>{if(op.includes(d.querySelector('summary')?.textContent))d.open=true});window.scrollTo(0,y);lastShell='';return}
  if(!G||G.stage==='setup'){const ov=UI.modal==='links'?linksModal():UI.modal==='rules'?rulesHTML():'';app.innerHTML=setupHTML()+ov;lastShell='';return}
+ document.body.classList.add('tvmode');
  if(lastShell!=='tv'){app.innerHTML='<main class="tv"><div class="bwrap"><div class="board" id="board"></div></div><aside class="side" id="side"></aside></main><div id="ov"></div>';lastShell='tv'}
  $('#board').innerHTML=SQ.map(cellHTML).join('')+centerHTML();
  $('#side').innerHTML=sideHTML();
